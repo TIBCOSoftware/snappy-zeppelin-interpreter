@@ -1,0 +1,88 @@
+group 'io.snappydata'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'wrapper'
+
+
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+ext {
+    scalaBinaryVersion = '2.11'
+    scalaVersion = scalaBinaryVersion + '.8'
+    buildDir = 'build-artifacts'
+    sparkVersion = '2.0.0'
+    snappySparkVersion = '2.0.1-1'
+    snappyDataVersion = '0.6-SNAPSHOT'
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: '0.6.1'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: '0.6.1'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: '0.6.1'
+    provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
+    provided "org.scala-lang:scala-library:" + scalaVersion
+    provided 'org.scala-lang:scala-reflect:' + scalaVersion
+    provided 'org.scala-lang:scala-compiler:' + scalaVersion
+    provided group: 'org.apache.spark', name: 'spark-repl_2.11', version: '2.0.0'
+    //provided files('/home/sachin/test_scala_2.11/snappydata-0.6-SNAPSHOT-bin/jars/snappy-spark-core_2.11-2.0.1-1.jar')
+    provided group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.0'
+}
+
+jar {
+    zip64 = true
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.provided).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+}
+
+task generateSnappydataZeppelinInterpreterJar(type: Jar){ //, dependsOn: compileScala) {
+
+    from sourceSets.main.output.classesDir
+    from sourceSets.main.output.resourcesDir
+    //from sourceSets.main.resources.srcDirs
+    // from 'src/main/resources/snappydata'
+    zip64 = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from sourceSets.main.output.classesDir
+    jar.includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    from('src/main/resources/'){
+        include 'interpreter-setting.json'
+        include 'ansi.sql.keywords'
+    }
+    jar.includeEmptyDirs = false
+
+    include 'org/apache/zeppelin/spark/**'
+    include 'org/apache/zeppelin/jdbc/**'
+    include 'org/apache/zeppelin/scheduler/**'
+    include 'org/apache/zeppelin/interpreter/**'
+    include 'com/google/**'
+    include 'org/slf4j/**'
+    include 'jline/console/**'
+    include 'jline/internal/**'
+    include 'jline/**'
+    include 'org/apache/commons/lang/**'
+    //include 'org/apache/zeppelin/interpreter/**'
+    // exclude 'org/apache/zeppelin/interpreter/SnappydataSqlZeppelinInterpreter**'
+    archiveName 'snappydata-zeppelin-interpreter-'+version+'.jar'
+}
+
