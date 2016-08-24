@@ -32,8 +32,8 @@ dependencies {
     provided "org.scala-lang:scala-library:" + scalaVersion
     provided 'org.scala-lang:scala-reflect:' + scalaVersion
     provided 'org.scala-lang:scala-compiler:' + scalaVersion
+    // TODO : Change it tpo snappy-spark-repl but spark repl will work for now
     provided group: 'org.apache.spark', name: 'spark-repl_2.11', version: '2.0.0'
-    //provided files('/home/sachin/test_scala_2.11/snappydata-0.6-SNAPSHOT-bin/jars/snappy-spark-core_2.11-2.0.1-1.jar')
     provided group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.0.0'
 }
 

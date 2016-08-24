@@ -20,11 +20,13 @@ Snappydata cluster internally starts zeppelin interpreter on the lead node so in
   ------------ | -------------| ------------ |
   default.driver  | Content from cell 2 | 
   snappydata.store.locators   | localhost:10334  | Used to specify locator URI (only **local/split** mode)|
-  master | local[*] | Used to specify spark master URI (only **local/split** mode)|
+  master | locali`[*]` | Used to specify spark master URI (only **local/split** mode)|
   zeppelin.jdbc.concurrent.use | true | Used to specify which zeppelin scheduler should be used.True for Fair and False for FIFO |
 
 ## Using snappydata zeppelin interpreter:
+
   Snappydata Zeppelin Interpreter group consist of 2 interpreters:
+
   Interpreter Name | Description |
   ---------------- | ----------- |
   %snappydata.snappydata | This interpreter is used to write scala code on the paragraph.SnappyContext is injected in this interpreter and can be accessed using variable **_snc_**
