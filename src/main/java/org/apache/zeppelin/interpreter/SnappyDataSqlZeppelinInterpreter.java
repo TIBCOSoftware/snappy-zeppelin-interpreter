@@ -105,21 +105,8 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
         for (InterpreterContextRunner r : contextInterpreter.getRunners()) {
           if (id.equals(r.getParagraphId())) {
 
-            String query = queries[queries.length - 1]+" with error";
+            String query = queries[queries.length - 1] + " with error";
             final InterpreterResult res = executeSql(propertyKey, query, contextInterpreter);
-
-            try{
-              /*Adding a delay of few milliseconds in order for zeppelin to render
-               the result.As this delay is after the query execution it will not
-               be considered in query time. This delay is basically the gap between
-               first query and spawning of the next query.
-              */
-              Thread.sleep(200);
-            } catch (InterruptedException interruptedException) {
-
-              //Ignore this exception as this should not harm the behaviour
-            }
-
             exService.submit(new QueryExecutor(r));
             return res;
           }
@@ -272,6 +259,17 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
     @Override
     public Integer call() throws Exception {
 
+      try {
+              /*Adding a delay of few milliseconds in order for zeppelin to render
+               the result.As this delay is after the query execution it will not
+               be considered in query time. This delay is basically the gap between
+               first query and spawning of the next query.
+              */
+        Thread.sleep(200);
+      } catch (InterruptedException interruptedException) {
+
+        //Ignore this exception as this should not harm the behaviour
+      }
       runner.run();
 
       return 0;

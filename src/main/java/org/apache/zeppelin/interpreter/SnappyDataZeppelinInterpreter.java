@@ -52,6 +52,7 @@ import java.util.Map;
 
 import com.google.common.base.Joiner;
 
+import io.snappydata.gemxd.MemoryNotificationFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
@@ -139,10 +140,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private SparkVersion sparkVersion;
   private File outputDir;          // class outputdir for scala 2.11
 
+  private static boolean pauseInterpreter = false;
 
   public SnappyDataZeppelinInterpreter(Properties property) {
     super(property);
     out = new SparkOutputStream(logger);
+    MemoryNotificationFactory.attachListener(new MemoryListenerImpl());
   }
 
   public SnappyDataZeppelinInterpreter(Properties property, SparkContext sc) {
@@ -151,6 +154,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     this.sc = sc;
     env = SparkEnv.get();
     sparkListener = setupListeners(this.sc);
+    MemoryNotificationFactory.attachListener(new MemoryListenerImpl());
   }
 
   public SparkContext getSparkContext() {
@@ -308,7 +312,6 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
   @Override
   public void open() {
-
     // set properties and do login before creating any spark stuff for secured cluster
     if (getProperty("master").equals("yarn-client")) {
       System.setProperty("SPARK_YARN_MODE", "true");
@@ -686,8 +689,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
    */
   @Override
   public InterpreterResult interpret(String line, InterpreterContext context) {
-   // if(!LeadNodeMemoryListener.isCriticalReached) {
-    if(true) {
+
+    if(!pauseInterpreter) {
       if (sparkVersion.isUnsupportedVersion()) {
         return new InterpreterResult(Code.ERROR, "Spark " + sparkVersion.toString()
             + " is not supported");
@@ -963,6 +966,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
   public static void cancelAllJobsAndPause() {
+    logger.info("Pausing interpreter and cancelling all Jobs.");
+    pauseInterpreter = true;
     sc.cancelAllJobs();
   }
 }
