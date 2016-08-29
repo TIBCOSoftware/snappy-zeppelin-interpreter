@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -54,7 +56,7 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
  */
 public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
   public static final String SHOW_APPROX_RESULTS_FIRST = "show-approx-results-first";
-  static volatile boolean firstTime = true;
+  static Map<String, Boolean> paragraphStateMap = new HashMap<String, Boolean>();
   private Logger logger = LoggerFactory.getLogger(SnappyDataSqlZeppelinInterpreter.class);
   static final String DEFAULT_KEY = "default";
 
@@ -99,8 +101,7 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
           return result;
         }
       }
-      if (firstTime) {
-        firstTime = false;
+      if (shouldExecuteApproxQuery(id)) {
 
         for (InterpreterContextRunner r : contextInterpreter.getRunners()) {
           if (id.equals(r.getParagraphId())) {
@@ -113,10 +114,7 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
         }
 
       } else {
-        firstTime = true;
         String query = queries[queries.length - 1];//.replaceAll("with error .*", "");
-
-
         return executeSql(propertyKey, query, contextInterpreter);
       }
       return null;
@@ -247,6 +245,26 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
       return EMPTY_COLUMN_VALUE;
     }
     return (!isTableResponseType) ? str : str.replace(TAB, WHITESPACE).replace(NEWLINE, WHITESPACE);
+  }
+
+  /**
+   * This method is needed in case of show-approx-results-first directive to toggle the state of paragraph
+   *
+   * @param paragraphId
+   * @return
+   */
+  private boolean shouldExecuteApproxQuery(String paragraphId) {
+
+    if (paragraphStateMap.containsKey(paragraphId) && !paragraphStateMap.get(paragraphId)) {
+      //Toggle the flag for next execution
+      paragraphStateMap.put(paragraphId, true);
+      return false;
+
+    } else {
+      //Toggle the flag for next execution
+      paragraphStateMap.put(paragraphId, false);
+      return true;
+    }
   }
 
 

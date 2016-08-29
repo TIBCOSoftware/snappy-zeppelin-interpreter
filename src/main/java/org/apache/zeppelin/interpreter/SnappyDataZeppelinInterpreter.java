@@ -37,6 +37,7 @@ package org.apache.zeppelin.interpreter;
 
 
 //import io.snappydata.gemxd.LeadNodeMemoryListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -206,7 +207,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         return null;
       }
     } catch (NoSuchMethodException | SecurityException | IllegalAccessException
-        | IllegalArgumentException | InvocationTargetException e) {
+            | IllegalArgumentException | InvocationTargetException e) {
       logger.error(e.toString(), e);
       return null;
     }
@@ -237,11 +238,11 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   public SparkDependencyResolver getDependencyResolver() {
     if (dep == null) {
       dep = new SparkDependencyResolver(
-          (Global)ZeppelinIntpUtil.invokeMethod(intp, "global"),
-          (ClassLoader)ZeppelinIntpUtil.invokeMethod(ZeppelinIntpUtil.invokeMethod(intp, "classLoader"), "getParent"),
-          sc,
-          getProperty("zeppelin.dep.localrepo"),
-          getProperty("zeppelin.dep.additionalRemoteRepository"));
+              (Global) ZeppelinIntpUtil.invokeMethod(intp, "global"),
+              (ClassLoader) ZeppelinIntpUtil.invokeMethod(ZeppelinIntpUtil.invokeMethod(intp, "classLoader"), "getParent"),
+              sc,
+              getProperty("zeppelin.dep.localrepo"),
+              getProperty("zeppelin.dep.additionalRemoteRepository"));
     }
     return dep;
   }
@@ -279,7 +280,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       Properties intpProperty = getProperty();
 
       for (Object k : intpProperty.keySet()) {
-        String key = (String)k;
+        String key = (String) k;
         String val = toString(intpProperty.get(key));
         if (!key.startsWith("spark.") || !val.trim().isEmpty()) {
           logger.debug(String.format("SparkConf: key = [%s], value = [%s]", key, val));
@@ -306,7 +307,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
 
   static final String toString(Object o) {
-    return (o instanceof String) ? (String)o : "";
+    return (o instanceof String) ? (String) o : "";
   }
 
 
@@ -317,7 +318,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       System.setProperty("SPARK_YARN_MODE", "true");
     }
     if (getProperty().containsKey("spark.yarn.keytab") &&
-        getProperty().containsKey("spark.yarn.principal")) {
+            getProperty().containsKey("spark.yarn.principal")) {
       try {
         String keytab = getProperty().getProperty("spark.yarn.keytab");
         String principal = getProperty().getProperty("spark.yarn.principal");
@@ -373,7 +374,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
 
     scala.collection.immutable.List<String> list =
-        JavaConversions.asScalaBuffer(argList).toList();
+            JavaConversions.asScalaBuffer(argList).toList();
 
     settings.processArguments(list, true);
 
@@ -421,8 +422,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
     // set classloader for scala compiler
     settings.explicitParentLoader_$eq(new Some<ClassLoader>(Thread.currentThread()
-        .getContextClassLoader()));
-    BooleanSetting b = (BooleanSetting)settings.usejavacp();
+            .getContextClassLoader()));
+    BooleanSetting b = (BooleanSetting) settings.usejavacp();
     b.v_$eq(true);
     settings.scala$tools$nsc$settings$StandardScalaSettings$_setter_$usejavacp_$eq(b);
 
@@ -444,12 +445,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     MutableSettings.IntSetting numClassFileSetting = settings.maxClassfileName();
     numClassFileSetting.v_$eq(128);
     settings.scala$tools$nsc$settings$ScalaSettings$_setter_$maxClassfileName_$eq(
-        numClassFileSetting);
+            numClassFileSetting);
 
     synchronized (sharedInterpreterLock) {
       /* create scala repl */
 
-      this.interpreter = new SparkILoop((java.io.BufferedReader)null, new PrintWriter(out));
+      this.interpreter = new SparkILoop((java.io.BufferedReader) null, new PrintWriter(out));
 
       interpreter.settings_$eq(settings);
 
@@ -462,21 +463,21 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
       if (ZeppelinIntpUtil.findClass("org.apache.spark.repl.SparkJLineCompletion", true) != null) {
         completer = ZeppelinIntpUtil.instantiateClass(
-            "org.apache.spark.repl.SparkJLineCompletion",
-            new Class[]{ZeppelinIntpUtil.findClass("org.apache.spark.repl.SparkIMain")},
-            new Object[]{intp});
+                "org.apache.spark.repl.SparkJLineCompletion",
+                new Class[]{ZeppelinIntpUtil.findClass("org.apache.spark.repl.SparkIMain")},
+                new Object[]{intp});
       } else if (ZeppelinIntpUtil.findClass(
-          "scala.tools.nsc.interpreter.PresentationCompilerCompleter", true) != null) {
+              "scala.tools.nsc.interpreter.PresentationCompilerCompleter", true) != null) {
         completer = ZeppelinIntpUtil.instantiateClass(
-            "scala.tools.nsc.interpreter.PresentationCompilerCompleter",
-            new Class[]{IMain.class},
-            new Object[]{intp});
+                "scala.tools.nsc.interpreter.PresentationCompilerCompleter",
+                new Class[]{IMain.class},
+                new Object[]{intp});
       } else if (ZeppelinIntpUtil.findClass(
-          "scala.tools.nsc.interpreter.JLineCompletion", true) != null) {
+              "scala.tools.nsc.interpreter.JLineCompletion", true) != null) {
         completer = ZeppelinIntpUtil.instantiateClass(
-            "scala.tools.nsc.interpreter.JLineCompletion",
-            new Class[]{IMain.class},
-            new Object[]{intp});
+                "scala.tools.nsc.interpreter.JLineCompletion",
+                new Class[]{IMain.class},
+                new Object[]{intp});
       }
       sparkSession = getSparkSession();
       sc = getSparkContext();
@@ -495,12 +496,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       dep = getDependencyResolver();
 
       z = new ZeppelinContext(sc, snc, null, dep,
-          Integer.parseInt(getProperty("zeppelin.spark.maxResult")));
+              Integer.parseInt(getProperty("zeppelin.spark.maxResult")));
 
       interpret("@transient val _binder = new java.util.HashMap[String, Object]()");
       Map<String, Object> binder;
 
-      binder = (Map<String, Object>)getLastObject();
+      binder = (Map<String, Object>) getLastObject();
       binder.put("sc", sc);
       binder.put("snc", snc);
       binder.put("z", z);
@@ -509,17 +510,17 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
 
       interpret("@transient val z = "
-          + "_binder.get(\"z\").asInstanceOf[org.apache.zeppelin.spark.ZeppelinContext]");
+              + "_binder.get(\"z\").asInstanceOf[org.apache.zeppelin.spark.ZeppelinContext]");
       interpret("@transient val sc = "
-          + "_binder.get(\"sc\").asInstanceOf[org.apache.spark.SparkContext]");
+              + "_binder.get(\"sc\").asInstanceOf[org.apache.spark.SparkContext]");
       // Injecting SnappyContext in repl
       interpret("@transient val snc = "
-          + "_binder.get(\"snc\").asInstanceOf[org.apache.spark.sql.SnappyContext]");
+              + "_binder.get(\"snc\").asInstanceOf[org.apache.spark.sql.SnappyContext]");
       interpret("@transient val snappyContext = "
-          + "_binder.get(\"snc\").asInstanceOf[org.apache.spark.sql.SnappyContext]");
+              + "_binder.get(\"snc\").asInstanceOf[org.apache.spark.sql.SnappyContext]");
 
       interpret("@transient val spark = "
-          + "_binder.get(\"spark\").asInstanceOf[org.apache.spark.sql.SparkSession]");
+              + "_binder.get(\"spark\").asInstanceOf[org.apache.spark.sql.SparkSession]");
 
       interpret("import org.apache.spark.SparkContext._");
       interpret("import org.apache.spark.sql.SnappyContext._");
@@ -566,11 +567,11 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
   private Results.Result interpret(String line) {
-    return (Results.Result)ZeppelinIntpUtil.invokeMethod(
-        intp,
-        "interpret",
-        new Class[]{String.class},
-        new Object[]{line});
+    return (Results.Result) ZeppelinIntpUtil.invokeMethod(
+            intp,
+            "interpret",
+            new Class[]{String.class},
+            new Object[]{line});
   }
 
   private List<File> currentClassPath() {
@@ -591,7 +592,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     }
 
     if (cl instanceof URLClassLoader) {
-      URLClassLoader ucl = (URLClassLoader)cl;
+      URLClassLoader ucl = (URLClassLoader) cl;
       URL[] urls = ucl.getURLs();
       if (urls != null) {
         for (URL url : urls) {
@@ -618,7 +619,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       cursor = completionText.length();
     }
 
-    ScalaCompleter c = (ScalaCompleter)ZeppelinIntpUtil.invokeMethod(completer, "completer");
+    ScalaCompleter c = (ScalaCompleter) ZeppelinIntpUtil.invokeMethod(completer, "completer");
     Candidates ret = c.complete(completionText, cursor);
 
     List<String> candidates = WrapAsJava$.MODULE$.seqAsJavaList(ret.candidates());
@@ -664,19 +665,19 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       completionStartPosition = completionEndPosition - completionStartPosition;
     }
     resultCompletionText = completionScriptText.substring(
-        completionStartPosition, completionEndPosition);
+            completionStartPosition, completionEndPosition);
 
     return resultCompletionText;
   }
 
 
   public Object getLastObject() {
-    IMain.Request r = (IMain.Request)ZeppelinIntpUtil.invokeMethod(intp, "lastRequest");
+    IMain.Request r = (IMain.Request) ZeppelinIntpUtil.invokeMethod(intp, "lastRequest");
     if (r == null || r.lineRep() == null) {
       return null;
     }
     Object obj = r.lineRep().call("$result",
-        JavaConversions.asScalaBuffer(new LinkedList<Object>()));
+            JavaConversions.asScalaBuffer(new LinkedList<Object>()));
     return obj;
   }
 
@@ -690,10 +691,10 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   @Override
   public InterpreterResult interpret(String line, InterpreterContext context) {
 
-    if(!pauseInterpreter) {
+    if (!pauseInterpreter) {
       if (sparkVersion.isUnsupportedVersion()) {
         return new InterpreterResult(Code.ERROR, "Spark " + sparkVersion.toString()
-            + " is not supported");
+                + " is not supported");
       }
 
       z.setInterpreterContext(context);
@@ -703,7 +704,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       return interpret(line.split("\n"), context);
     } else {
       return new InterpreterResult(Code.INCOMPLETE,
-          "Memory threshold reached.Please restart interpreter to release memory");
+              "Memory threshold reached.Please restart interpreter to release memory");
     }
   }
 
@@ -742,9 +743,9 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         String nextLine = linesToRun[l + 1].trim();
         boolean continuation = false;
         if (nextLine.isEmpty()
-            || nextLine.startsWith("//")         // skip empty line or comment
-            || nextLine.startsWith("}")
-            || nextLine.startsWith("object")) {  // include "} object" for Scala companion object
+                || nextLine.startsWith("//")         // skip empty line or comment
+                || nextLine.startsWith("}")
+                || nextLine.startsWith("object")) {  // include "} object" for Scala companion object
           continuation = true;
         } else if (!inComment && nextLine.startsWith("/*")) {
           inComment = true;
@@ -753,9 +754,9 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
           inComment = false;
           continuation = true;
         } else if (nextLine.length() > 1
-            && nextLine.charAt(0) == '.'
-            && nextLine.charAt(1) != '.'     // ".."
-            && nextLine.charAt(1) != '/') {  // "./"
+                && nextLine.charAt(0) == '.'
+                && nextLine.charAt(1) != '.'     // ".."
+                && nextLine.charAt(1) != '/') {  // "./"
           continuation = true;
         } else if (inComment) {
           continuation = true;
@@ -829,7 +830,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     Iterator<ActiveJob> it = jobs.iterator();
     while (it.hasNext()) {
       ActiveJob job = it.next();
-      String g = (String)job.properties().get("spark.jobGroup.id");
+      String g = (String) job.properties().get("spark.jobGroup.id");
       if (jobGroup.equals(g)) {
         int[] progressInfo = null;
         try {
@@ -840,8 +841,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
             progressInfo = getProgressFromStage_1_1x(sparkListener, finalStage);
           }
         } catch (IllegalAccessException | IllegalArgumentException
-            | InvocationTargetException | NoSuchMethodException
-            | SecurityException e) {
+                | InvocationTargetException | NoSuchMethodException
+                | SecurityException e) {
           logger.error("Can't get progress info", e);
           return 0;
         }
@@ -858,24 +859,24 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
 
   private int[] getProgressFromStage_1_0x(JobProgressListener sparkListener, Object stage)
-      throws IllegalAccessException, IllegalArgumentException,
-      InvocationTargetException, NoSuchMethodException, SecurityException {
-    int numTasks = (int)stage.getClass().getMethod("numTasks").invoke(stage);
+          throws IllegalAccessException, IllegalArgumentException,
+          InvocationTargetException, NoSuchMethodException, SecurityException {
+    int numTasks = (int) stage.getClass().getMethod("numTasks").invoke(stage);
     int completedTasks = 0;
 
-    int id = (int)stage.getClass().getMethod("id").invoke(stage);
+    int id = (int) stage.getClass().getMethod("id").invoke(stage);
 
     Object completedTaskInfo = null;
 
     completedTaskInfo = JavaConversions.mapAsJavaMap(
-        (HashMap<Object, Object>)sparkListener.getClass()
-            .getMethod("stageIdToTasksComplete").invoke(sparkListener)).get(id);
+            (HashMap<Object, Object>) sparkListener.getClass()
+                    .getMethod("stageIdToTasksComplete").invoke(sparkListener)).get(id);
 
     if (completedTaskInfo != null) {
-      completedTasks += (int)completedTaskInfo;
+      completedTasks += (int) completedTaskInfo;
     }
-    List<Object> parents = JavaConversions.seqAsJavaList((Seq<Object>)stage.getClass()
-        .getMethod("parents").invoke(stage));
+    List<Object> parents = JavaConversions.seqAsJavaList((Seq<Object>) stage.getClass()
+            .getMethod("parents").invoke(stage));
     if (parents != null) {
       for (Object s : parents) {
         int[] p = getProgressFromStage_1_0x(sparkListener, s);
@@ -888,34 +889,34 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
   private int[] getProgressFromStage_1_1x(JobProgressListener sparkListener, Object stage)
-      throws IllegalAccessException, IllegalArgumentException,
-      InvocationTargetException, NoSuchMethodException, SecurityException {
-    int numTasks = (int)stage.getClass().getMethod("numTasks").invoke(stage);
+          throws IllegalAccessException, IllegalArgumentException,
+          InvocationTargetException, NoSuchMethodException, SecurityException {
+    int numTasks = (int) stage.getClass().getMethod("numTasks").invoke(stage);
     int completedTasks = 0;
-    int id = (int)stage.getClass().getMethod("id").invoke(stage);
+    int id = (int) stage.getClass().getMethod("id").invoke(stage);
 
     try {
       Method stageIdToData = sparkListener.getClass().getMethod("stageIdToData");
       HashMap<Tuple2<Object, Object>, Object> stageIdData =
-          (HashMap<Tuple2<Object, Object>, Object>)stageIdToData.invoke(sparkListener);
+              (HashMap<Tuple2<Object, Object>, Object>) stageIdToData.invoke(sparkListener);
       Class<?> stageUIDataClass =
-          this.getClass().forName("org.apache.spark.ui.jobs.UIData$StageUIData");
+              this.getClass().forName("org.apache.spark.ui.jobs.UIData$StageUIData");
 
       Method numCompletedTasks = stageUIDataClass.getMethod("numCompleteTasks");
       Set<Tuple2<Object, Object>> keys =
-          JavaConverters.setAsJavaSetConverter(stageIdData.keySet()).asJava();
+              JavaConverters.setAsJavaSetConverter(stageIdData.keySet()).asJava();
       for (Tuple2<Object, Object> k : keys) {
-        if (id == (int)k._1()) {
+        if (id == (int) k._1()) {
           Object uiData = stageIdData.get(k).get();
-          completedTasks += (int)numCompletedTasks.invoke(uiData);
+          completedTasks += (int) numCompletedTasks.invoke(uiData);
         }
       }
     } catch (Exception e) {
       logger.error("Error on getting progress information", e);
     }
 
-    List<Object> parents = JavaConversions.seqAsJavaList((Seq<Object>)stage.getClass()
-        .getMethod("parents").invoke(stage));
+    List<Object> parents = JavaConversions.seqAsJavaList((Seq<Object>) stage.getClass()
+            .getMethod("parents").invoke(stage));
     if (parents != null) {
       for (Object s : parents) {
         int[] p = getProgressFromStage_1_1x(sparkListener, s);
@@ -953,7 +954,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   @Override
   public Scheduler getScheduler() {
     return SchedulerFactory.singleton().createOrGetParallelScheduler(
-        SnappyDataZeppelinInterpreter.class.getName() + this.hashCode(), 10);
+            SnappyDataZeppelinInterpreter.class.getName() + this.hashCode(), 10);
   }
 
   public ZeppelinContext getZeppelinContext() {
