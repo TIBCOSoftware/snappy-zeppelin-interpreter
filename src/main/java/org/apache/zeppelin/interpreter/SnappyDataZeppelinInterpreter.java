@@ -36,8 +36,6 @@
 package org.apache.zeppelin.interpreter;
 
 
-//import io.snappydata.gemxd.LeadNodeMemoryListener;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -53,7 +51,6 @@ import java.util.Map;
 
 import com.google.common.base.Joiner;
 
-import io.snappydata.gemxd.MemoryNotificationFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
@@ -146,7 +143,6 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   public SnappyDataZeppelinInterpreter(Properties property) {
     super(property);
     out = new SparkOutputStream(logger);
-    MemoryNotificationFactory.attachListener(new MemoryListenerImpl());
   }
 
   public SnappyDataZeppelinInterpreter(Properties property, SparkContext sc) {
@@ -155,7 +151,6 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     this.sc = sc;
     env = SparkEnv.get();
     sparkListener = setupListeners(this.sc);
-    MemoryNotificationFactory.attachListener(new MemoryListenerImpl());
   }
 
   public SparkContext getSparkContext() {

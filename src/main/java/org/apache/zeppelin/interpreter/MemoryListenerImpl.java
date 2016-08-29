@@ -16,21 +16,21 @@
  */
 package org.apache.zeppelin.interpreter;
 
-import io.snappydata.gemxd.MemoryNotificationListener;
+import com.gemstone.gemfire.internal.cache.control.MemoryEvent;
+import com.gemstone.gemfire.internal.cache.control.ResourceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MemoryListenerImpl implements MemoryNotificationListener {
+public class MemoryListenerImpl implements ResourceListener<MemoryEvent> {
   public static Logger logger = LoggerFactory.getLogger(MemoryListenerImpl.class);
+
   @Override
-  public void notifyCriticalUp() {
+  public void onEvent(MemoryEvent event) {
 
     logger.warn("Critical Up memory event Occured");
-    SnappyDataZeppelinInterpreter.cancelAllJobsAndPause();
-  }
 
-  @Override
-  public void notifyEvictionUp() {
-
+    if (event.getState().isCritical()) {
+      SnappyDataZeppelinInterpreter.cancelAllJobsAndPause();
+    }
   }
 }
