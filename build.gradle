@@ -1,0 +1,160 @@
+group 'io.snappydata'
+version '0.6-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'wrapper'
+apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url "https://oss.sonatype.org/content/repositories/public" }
+}
+ext {
+    scalaBinaryVersion = '2.11'
+    scalaVersion = scalaBinaryVersion + '.8'
+    buildDir = 'build-artifacts'
+    sparkVersion = '2.0.0'
+    snappySparkVersion = '2.0.1-1'
+    snappyDataVersion = '0.6-SNAPSHOT'
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: '0.6.1'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: '0.6.1'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: '0.6.1'
+    provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
+    provided "org.scala-lang:scala-library:" + scalaVersion
+    provided 'org.scala-lang:scala-reflect:' + scalaVersion
+    provided 'org.scala-lang:scala-compiler:' + scalaVersion
+    provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
+    provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+}
+
+jar {
+    zip64 = true
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.provided).collect {
+            println(it.absolutePath)
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+}
+
+/*signing {
+    sign configurations.archives
+}*/
+
+/*
+//Used to generate and load maven artifacts
+publishing {
+    publications {
+        interpreter(MavenPublication) {
+            groupId 'org.apache.zeppelin'
+            artifactId 'snappydata-zeppelin-interpreter'
+            version version
+
+           // artifact generateSnappydataZeppelinInterpreterJar
+        }
+    }
+    repositories {
+        maven {
+
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+            credentials {
+                username ""
+                password ""
+            }
+        }
+    }
+}
+*/
+
+task packageSources(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+task packageDocs(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            //repository(url: "file://localhost/tmp/myRepo/")
+            repository(url: "file://localhost/home/sachin/.m2/repository")
+           /* repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }*/
+            pom.project {
+                name 'SnappyData'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'SnappyData distributed data store and execution engine'
+                url 'http://www.snappydata.io'
+
+                scm {
+                    connection 'scm:git:https://github.com/SnappyDataInc/snappydata.git'
+                    developerConnection 'scm:git:https://github.com/SnappyDataInc/snappydata.git'
+                    url 'https://github.com/SnappyDataInc/snappydata'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'smenon'
+                        name 'Sudhir Menon'
+                        email 'smenon@snappydata.io'
+                    }
+                }
+            }
+        }
+    }
+
+    //Dependencies for pom generation
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.11'
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: '0.6.1'
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: '0.6.1'
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: '0.6.1'
+        compile "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
+        compile "org.scala-lang:scala-library:" + scalaVersion
+        compile 'org.scala-lang:scala-reflect:' + scalaVersion
+        compile 'org.scala-lang:scala-compiler:' + scalaVersion
+        compile "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
+        compile "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+    }
+}
+
+def installer = install.repositories.mavenInstaller
+def deployer = uploadArchives.repositories.mavenDeployer
+
+[installer, deployer]*.pom*.whenConfigured {pom ->
+    pom.dependencies.find {dep -> dep }.optional = true
+}
