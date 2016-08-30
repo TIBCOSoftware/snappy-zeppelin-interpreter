@@ -16,6 +16,8 @@
  */
 package org.apache.zeppelin.interpreter;
 
+import com.gemstone.gemfire.internal.cache.GemFireCacheImpl;
+import com.gemstone.gemfire.internal.cache.control.InternalResourceManager;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.zeppelin.interpreter.remote.RemoteInterpreterServer;
@@ -31,6 +33,10 @@ public class SnappyInterpreterServer extends RemoteInterpreterServer {
   public SnappyInterpreterServer(Integer port) throws TTransportException {
     super(port);
     logger.info("Initializing SnappyInterpreter Server");
+
+    GemFireCacheImpl.getInstance().getResourceManager().
+            addResourceListener(InternalResourceManager.ResourceType.ALL, new MemoryListenerImpl());
+
   }
 
   /**

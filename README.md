@@ -7,12 +7,16 @@ Snappydata interpreter for Apache Zeppelin
 [SnappyData](http://snappydatainc.github.io/snappydata/) is a distributed in-memory data store for real-time operational analytics, delivering stream analytics, OLTP (online transaction processing) and OLAP (online analytical processing) in a single integrated cluster. We realize this platform through a seamless integration of Apache Spark (as a big data computational engine) with GemFire XD (as an in-memory transactional store with scale-out SQL semantics).
 
 ## Installing and Running Snappydata Interpreter:
-Snappydata cluster internally starts zeppelin interpreter on the lead node so in order to use Snappydata interpreters in zeppelin, you have install Snappydata cluster using simple steps as mentioned in the following [here](<TODO: Add installation docs link here>):
-  Once snappydata cluster is being set up you have to connect to snappydata interpreter from zeppelin server.Following are the steps used to connect to remotely executing snappydata interpreter from zeppelin server:
-  1. Login to the zeppelin UI and browse for interpreter settings
-  2. Search for snappydata interpreter settings.Click edit the snappydata interpreter and then select "Connect to existing process"
-  3. Specify host on which snappydata lead node is executing along with the snappydata zeppelin port (Default: 3768) 
-  4. Edit the other properties if needed.Following image shows snappydata interpreter properties:
+In order to use zeppelin with SnappyData following are the steps that needs to be performed:
+1) Download latest snappydata binary and extract it
+2) Copy snappydata zeppelin interpreter jar in the jars directory of snappydata
+3) Enable snappydata zeppelin interpreter by setting **_zeppelin.interpreter.enable_** to true in lead node configuration
+4) Start SnappyData cluster
+Once snappydata cluster is being set up you have to connect to snappydata interpreter from zeppelin server.Following are the steps used to connect to remotely executing snappydata interpreter from zeppelin server:
+1) Login to the zeppelin UI and browse for interpreter settings
+2) Search for snappydata interpreter settings.Click edit the snappydata interpreter and then select "Connect to existing process"
+3) Specify host on which snappydata lead node is executing along with the snappydata zeppelin port (Default: 3768)
+4) Edit the other properties if needed.Following image shows snappydata interpreter properties:
   ![Snappydata Interpreter settings](images/snappydata_interpreter_properties.png)
 
 ## Supported properties and their values:

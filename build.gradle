@@ -20,6 +20,7 @@ ext {
     sparkVersion = '2.0.0'
     snappySparkVersion = '2.0.1-1'
     snappyDataVersion = '0.6-SNAPSHOT'
+    gemfireVersion = "1.5.1-SNAPSHOT"
 }
 
 configurations {
@@ -38,6 +39,9 @@ dependencies {
     provided 'org.scala-lang:scala-compiler:' + scalaVersion
     provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
     provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+    //provided "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
+   // compile files('/home/sachin/github/zeppelin/snappydata/build-artifacts/scala-2.11/snappy/jars/snappydata-cluster_2.11-0.6-SNAPSHOT.jar')
+    compile "io.snappydata:gemfire-core:" + gemfireVersion
 }
 
 jar {
@@ -149,6 +153,11 @@ uploadArchives {
         compile 'org.scala-lang:scala-compiler:' + scalaVersion
         compile "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
         compile "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+        compile "io.snappydata:gemfire-core:" + gemfireVersion
+
+
+       //compile "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
+      //  compile files('/home/sachin/github/zeppelin/snappydata/build-artifacts/scala-2.11/snappy/jars/snappydata-cluster_2.11-0.6-SNAPSHOT.jar')
     }
 }
 
