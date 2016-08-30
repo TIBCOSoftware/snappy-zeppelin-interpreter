@@ -1,5 +1,5 @@
 group 'io.snappydata'
-version '0.6-SNAPSHOT'
+version '0.5.2'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -55,9 +55,9 @@ jar {
     }
 }
 
-/*signing {
+signing {
     sign configurations.archives
-}*/
+}
 
 /*
 //Used to generate and load maven artifacts
@@ -98,14 +98,13 @@ uploadArchives {
     repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            //repository(url: "file://localhost/tmp/myRepo/")
-            repository(url: "file://localhost/home/sachin/.m2/repository")
-           /* repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+            //repository(url: "file://localhost/home/sachin/.m2/repository")
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
             }
             snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
-            }*/
+            }
             pom.project {
                 name 'SnappyData'
                 packaging 'jar'
