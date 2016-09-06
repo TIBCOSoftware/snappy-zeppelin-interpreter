@@ -127,6 +127,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private static Integer sharedInterpreterLock = new Integer(0);
 
 
+  public static final String FS_S3A_ACCESS_KEY = "fs.s3a.access.key";
+  public static final String FS_S3A_SECRET_KEY = "fs.s3a.secret.key";
   private SparkOutputStream out;
   private SparkDependencyResolver dep;
 
@@ -484,6 +486,11 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         sc.taskScheduler().rootPool().addSchedulable(pool);
       }
 
+      if (null != getProperty(FS_S3A_ACCESS_KEY) && null != getProperty(FS_S3A_SECRET_KEY)) {
+
+        sc.hadoopConfiguration().set(FS_S3A_ACCESS_KEY, getProperty(FS_S3A_ACCESS_KEY));
+        sc.hadoopConfiguration().set(FS_S3A_SECRET_KEY, getProperty(FS_S3A_SECRET_KEY));
+      }
       sparkVersion = SparkVersion.fromVersionString(sc.version());
 
       snc = getSnappyContext();

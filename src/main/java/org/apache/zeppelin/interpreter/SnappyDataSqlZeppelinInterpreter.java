@@ -56,7 +56,7 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
  */
 public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
   public static final String SHOW_APPROX_RESULTS_FIRST = "show-approx-results-first";
-  static Map<String, Boolean> paragraphStateMap = new HashMap<String, Boolean>();
+  static Map<String, ParagraphState> paragraphStateMap = new HashMap<String, ParagraphState>();
   private Logger logger = LoggerFactory.getLogger(SnappyDataSqlZeppelinInterpreter.class);
   static final String DEFAULT_KEY = "default";
 
@@ -96,7 +96,7 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
        */
       String queries[] = cmd.split(";");
       for (int i = 0; i < queries.length - 1; i++) {
-        InterpreterResult result = executeSql(propertyKey, queries[i], contextInterpreter);
+        InterpreterResult result = executeSql(propertyKey, queries[i], contextInterpreter,false);
         if (result.code().equals(InterpreterResult.Code.ERROR)) {
           return result;
         }
@@ -107,7 +107,7 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
           if (id.equals(r.getParagraphId())) {
 
             String query = queries[queries.length - 1] + " with error";
-            final InterpreterResult res = executeSql(propertyKey, query, contextInterpreter);
+            final InterpreterResult res = executeSql(propertyKey, query, contextInterpreter,true);
             exService.submit(new QueryExecutor(r));
             return res;
           }
@@ -115,18 +115,18 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
 
       } else {
         String query = queries[queries.length - 1];//.replaceAll("with error .*", "");
-        return executeSql(propertyKey, query, contextInterpreter);
+        return executeSql(propertyKey, query, contextInterpreter,false);
       }
       return null;
     } else {
       String queries[] = cmd.split(";");
       for (int i = 0; i < queries.length - 1; i++) {
-        InterpreterResult result = executeSql(propertyKey, queries[i], contextInterpreter);
+        InterpreterResult result = executeSql(propertyKey, queries[i], contextInterpreter,false);
         if (result.code().equals(InterpreterResult.Code.ERROR)) {
           return result;
         }
       }
-      return executeSql(propertyKey, queries[queries.length - 1], contextInterpreter);
+      return executeSql(propertyKey, queries[queries.length - 1], contextInterpreter,false);
 
     }
 
@@ -142,7 +142,7 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
    * @return
    */
   private InterpreterResult executeSql(String propertyKey, String sql,
-      InterpreterContext interpreterContext) {
+      InterpreterContext interpreterContext,boolean isApproxQuery) {
 
     String paragraphId = interpreterContext.getParagraphId();
 
@@ -169,8 +169,9 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
       ResultSet resultSet = null;
       try {
 
+        long startTime = System.currentTimeMillis();
         boolean isResultSetAvailable = statement.execute(sql);
-
+        long endTime = System.currentTimeMillis();
         if (isResultSetAvailable) {
           resultSet = statement.getResultSet();
 
@@ -205,6 +206,19 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
             }
             msg.append(NEWLINE);
             displayRowCount++;
+          }
+          if (isApproxQuery && displayRowCount > 0) {
+            paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);
+            msg.append("\n<font color=red>Time required to execute query on sample table : "
+                    + (endTime - startTime) + " millis.Executing base query ...</font>");
+
+          } else if (paragraphStateMap.containsKey(paragraphId) && displayRowCount > 0) {
+
+            paragraphStateMap.get(paragraphId).setTimeRequiredForBaseQuery(endTime - startTime);
+            msg.append("\n<font color=red>Time required to execute query on sample table : "
+                    + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
+            msg.append("\n<font color=red>Time required to execute query on base table : "
+                    + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
           }
         } else {
           // Response contains either an update count or there are no results.
@@ -255,14 +269,16 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
    */
   private boolean shouldExecuteApproxQuery(String paragraphId) {
 
-    if (paragraphStateMap.containsKey(paragraphId) && !paragraphStateMap.get(paragraphId)) {
+    if (paragraphStateMap.containsKey(paragraphId) && !paragraphStateMap.get(paragraphId).isExecuteApproxQuery()) {
       //Toggle the flag for next execution
-      paragraphStateMap.put(paragraphId, true);
+      paragraphStateMap.get(paragraphId).setExecuteApproxQuery(true);
       return false;
 
     } else {
+      ParagraphState paragraphState = new ParagraphState();
+      paragraphState.setExecuteApproxQuery(false);
       //Toggle the flag for next execution
-      paragraphStateMap.put(paragraphId, false);
+      paragraphStateMap.put(paragraphId, paragraphState);
       return true;
     }
   }
