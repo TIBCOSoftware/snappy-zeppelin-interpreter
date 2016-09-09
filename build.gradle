@@ -6,6 +6,7 @@ apply plugin: 'wrapper'
 apply plugin: 'maven-publish'
 apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: 'distribution'
 
 
 repositories {
@@ -13,6 +14,14 @@ repositories {
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     maven { url "https://oss.sonatype.org/content/repositories/public" }
 }
+
+gradle.taskGraph.whenReady( { graph ->
+    tasks.withType(Tar).each { tar ->
+        tar.compression = Compression.GZIP
+        tar.extension = 'tar.gz'
+    }
+})
+
 ext {
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
@@ -42,7 +51,6 @@ dependencies {
     provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
     provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
     //provided "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
-   // compile files('/home/sachin/github/zeppelin/snappydata/build-artifacts/scala-2.11/snappy/jars/snappydata-cluster_2.11-0.6-SNAPSHOT.jar')
     compile "io.snappydata:gemfire-core:" + gemfireVersion
 }
 
@@ -61,9 +69,41 @@ jar {
     }
 }
 
-/*signing {
-    sign configurations.archives
-}*/
+task packageSources(type: Jar, dependsOn: classes) {
+    if (rootProject.hasProperty('enablePublish')) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+}
+task packageDocs(type: Jar, dependsOn: javadoc) {
+    if (rootProject.hasProperty('enablePublish')) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+}
+
+artifacts {
+    archives packageSources, packageDocs
+}
+
+distributions {
+    main {
+        baseName = 'snappydata-zeppelin'
+        contents {
+            from "${rootProject.buildDir}/libs/"
+            from "src/main/resources/interpreter-setting.json"
+            from "src/main/resources/ansi.sql.keywords"
+        }
+    }
+}
+
+
+distTar {
+    dependsOn ':jar'
+    classifier 'bin'
+}
+
+
 
 /*
 //Used to generate and load maven artifacts
@@ -91,27 +131,25 @@ publishing {
 }
 */
 
-task packageSources(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-task packageDocs(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc
-}
+
 
 uploadArchives {
+    if (rootProject.hasProperty('enablePublish')) {
+        signing {
+            sign configurations.archives
+        }
+    }
     repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            //repository(url: "file://localhost/tmp/myRepo/")
-            repository(url: "file://localhost/home/sachin/.m2/repository")
-           /* repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+
+            //repository(url: "file://localhost/home/sachin/.m2/repository")
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
             }
             snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
-            }*/
+            }
             pom.project {
                 name 'SnappyData'
                 packaging 'jar'
@@ -158,11 +196,17 @@ uploadArchives {
         compile "io.snappydata:gemfire-core:" + gemfireVersion
         compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
         compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
-
-
        //compile "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
-      //  compile files('/home/sachin/github/zeppelin/snappydata/build-artifacts/scala-2.11/snappy/jars/snappydata-cluster_2.11-0.6-SNAPSHOT.jar')
     }
+}
+
+task publishLocal {
+    dependsOn ':install'
+}
+
+
+task publishMaven {
+    dependsOn ':uploadArchives'
 }
 
 def installer = install.repositories.mavenInstaller
