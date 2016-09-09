@@ -111,6 +111,7 @@ import org.apache.zeppelin.interpreter.Interpreter.FormType;
  * https://github.com/apache/zeppelin/blob/master/spark/src/main/java/org/apache/zeppelin/spark/SparkInterpreter.java
  */
 public class SnappyDataZeppelinInterpreter extends Interpreter {
+  public static final String FS_S3A_IMPL = "fs.s3a.impl";
   public static Logger logger = LoggerFactory.getLogger(SnappyDataZeppelinInterpreter.class);
   private ZeppelinContext z;
   private SparkILoop interpreter;
@@ -127,6 +128,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private static Integer sharedInterpreterLock = new Integer(0);
 
 
+  public static final String FS_S3A_ACCESS_KEY = "fs.s3a.access.key";
+  public static final String FS_S3A_SECRET_KEY = "fs.s3a.secret.key";
   private SparkOutputStream out;
   private SparkDependencyResolver dep;
 
@@ -484,6 +487,13 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         sc.taskScheduler().rootPool().addSchedulable(pool);
       }
 
+      if (null != getProperty(FS_S3A_ACCESS_KEY) && null != getProperty(FS_S3A_SECRET_KEY)) {
+
+        logger.info("Setting s3 conf");
+        sc.hadoopConfiguration().set(FS_S3A_IMPL, "org.apache.hadoop.fs.s3a.S3AFileSystem");
+        sc.hadoopConfiguration().set(FS_S3A_ACCESS_KEY, getProperty(FS_S3A_ACCESS_KEY));
+        sc.hadoopConfiguration().set(FS_S3A_SECRET_KEY, getProperty(FS_S3A_SECRET_KEY));
+      }
       sparkVersion = SparkVersion.fromVersionString(sc.version());
 
       snc = getSnappyContext();
