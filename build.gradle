@@ -30,18 +30,22 @@ ext {
     snappySparkVersion = '2.0.1-1'
     snappyDataVersion = '0.6-SNAPSHOT'
     gemfireVersion = "1.5.1-SNAPSHOT"
+    zeppelinVersion = '0.6.1'
 }
 
 configurations {
     provided
     compile.extendsFrom provided
 }
-
+configurations.archives.with {
+    artifacts.remove artifacts.find { it.archiveTask.is distTar}
+    artifacts.remove artifacts.find { it.archiveTask.is distZip}
+}
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: '0.6.1'
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: '0.6.1'
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: '0.6.1'
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
     compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
     provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
@@ -56,10 +60,10 @@ dependencies {
 
 jar {
     zip64 = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn configurations.runtime
     from {
         (configurations.runtime - configurations.provided).collect {
-            println(it.absolutePath)
             it.isDirectory() ? it : zipTree(it)
         }
     } {
@@ -99,7 +103,7 @@ distributions {
 
 
 distTar {
-    dependsOn ':jar'
+    dependsOn 'jar'
     classifier 'bin'
 }
 
@@ -184,9 +188,9 @@ uploadArchives {
     //Dependencies for pom generation
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.11'
-        compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: '0.6.1'
-        compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: '0.6.1'
-        compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: '0.6.1'
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
         compile "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
         compile "org.scala-lang:scala-library:" + scalaVersion
         compile 'org.scala-lang:scala-reflect:' + scalaVersion
@@ -201,6 +205,7 @@ uploadArchives {
 }
 
 task publishLocal {
+    dependsOn 'jar'
     dependsOn ':install'
 }
 
