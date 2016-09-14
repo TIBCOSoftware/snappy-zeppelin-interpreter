@@ -219,6 +219,11 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
                     + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
             msg.append("\n<font color=red>Time required to execute query on base table : "
                     + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
+            paragraphStateMap.remove(paragraphId);
+          } else {
+            msg.append("\n<font color=red>Time required to execute query : "
+                    + (endTime - startTime) + " millis.</font>");
+
           }
         } else {
           // Response contains either an update count or there are no results.
