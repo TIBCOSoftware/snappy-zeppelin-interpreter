@@ -1,0 +1,861 @@
+{
+  "paragraphs": [
+    {
+      "title": "NYC Taxi Data Analytics",
+      "text": "",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "tableHide": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "colWidth": 12.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390194_-171545222",
+      "id": "20160913-064005_1687672995",
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Comparing the number of records in base table and Sample table",
+      "text": "",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "tableHide": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "colWidth": 12.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390196_-173853715",
+      "id": "20160913-102730_397816573",
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Base Table",
+      "text": "%sql\nselect count(*) count from nyctaxi;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390196_-173853715",
+      "id": "20160913-102635_482610975",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "COUNT\n158403144\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Sample Table",
+      "text": "%sql\nselect count(*) count, count(*) sample_count from nyctaxi with error 0.1;\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390197_-174238464",
+      "id": "20160913-102147_1078513643",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "COUNT\tSAMPLE_COUNT\n158403144\t1707796\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "How does ridership change over seasons?",
+      "text": "%sql\n\nselect count(*) numOfRides, month(pickup_datetime) from nyctaxi group by month(pickup_datetime);\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "lineChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "month(CAST(PICKUP_DATETIME AS DATE))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "NUMOFRIDES",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {},
+          "lineWithFocus": false,
+          "forceY": false
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390197_-174238464",
+      "id": "20160913-102929_1633634550",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "NUMOFRIDES\tmonth(CAST(PICKUP_DATETIME AS DATE))\n13971118\t12\n14385456\t6\n15749228\t3\n15285049\t5\n14107693\t9\n15100468\t4\n12597109\t8\n13823840\t7\n15004556\t10\n14388451\t11\n13990176\t2\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "How does ridership change over seasons? (Sample)",
+      "text": "%sql\n\n\nselect count(*) numOfRides, month(pickup_datetime) from nyctaxi group by month(pickup_datetime) with error ;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "lineChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "month(CAST(PICKUP_DATETIME AS DATE))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "NUMOFRIDES",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "NUMOFRIDES",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "month(CAST(PICKUP_DATETIME AS DATE))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390197_-174238464",
+      "id": "20160913-102900_344385570",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "NUMOFRIDES\tmonth(CAST(PICKUP_DATETIME AS DATE))\n14069767\t12\n14358696\t6\n15657659\t3\n15302669\t5\n13965725\t9\n15239078\t4\n12741100\t8\n13665566\t7\n14885341\t10\n14318841\t11\n14198698\t2\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Number of Rides per week",
+      "text": "%sql\nselect count(*) numOfRides, weekofyear(pickup_datetime) from nyctaxi group by weekofyear(pickup_datetime);",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390198_-173084217",
+      "id": "20160913-103717_1785005943",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "NUMOFRIDES\tweekofyear(CAST(PICKUP_DATETIME AS DATE))\n2284981\t31\n3068955\t34\n3254281\t28\n2693554\t27\n3316197\t26\n3456135\t44\n3503452\t12\n3283327\t22\n3468347\t47\n873292\t1\n2502834\t52\n3369105\t13\n3568414\t16\n3265539\t6\n3366261\t40\n3546449\t20\n2867592\t48\n1609476\t5\n3534632\t19\n3381158\t41\n3551882\t15\n3447222\t43\n3443411\t37\n3520781\t17\n3624948\t9\n2993235\t35\n3532406\t8\n3279905\t39\n3405659\t23\n3432517\t49\n3600265\t7\n3322749\t51\n3593155\t10\n3441637\t50\n3453794\t45\n3416962\t38\n3311422\t25\n3366734\t24\n3337044\t29\n3292365\t21\n2887145\t32\n3641058\t11\n3059373\t33\n3519778\t14\n3367056\t42\n3226851\t30\n3407962\t46\n3553333\t18\n3158514\t36\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Number of Rides per week (Sample)",
+      "text": "%sql\n\nselect count(*) numOfRides, weekofyear(pickup_datetime) from nyctaxi group by weekofyear(pickup_datetime) with error;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390198_-173084217",
+      "id": "20160913-104339_26190446",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "NUMOFRIDES\tweekofyear(CAST(PICKUP_DATETIME AS DATE))\n2375814\t31\n3023512\t34\n3279980\t28\n3357713\t26\n2678414\t27\n3339485\t44\n3343713\t12\n3266981\t22\n3507089\t47\n857089\t1\n2477309\t52\n3338588\t13\n3220081\t6\n3566407\t16\n3526731\t20\n3330515\t40\n2870400\t48\n1646565\t5\n3591251\t19\n3402546\t41\n3608448\t15\n3547158\t43\n3438024\t37\n3821615\t9\n3493107\t17\n3103531\t35\n3662607\t8\n3338664\t23\n3180975\t39\n3678006\t49\n3520576\t7\n3393912\t51\n3454081\t10\n3251275\t50\n3307312\t45\n3481182\t38\n3266535\t25\n3454470\t24\n3269094\t29\n3211071\t21\n2868379\t32\n3848527\t11\n3092933\t33\n3628985\t14\n3240386\t42\n3070447\t30\n3503339\t46\n3590073\t18\n3078221\t36\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "How long does it take to ride from Midtown to Downtown?",
+      "text": "%sql\nselect avg(trip_time_in_secs/60) tripTime, hour(pickup_datetime), count(*) howManyTrips from nyctaxi where pickup_latitude \u003c 40.767588 and pickup_latitude \u003e 40.749775 and pickup_longitude \u003e -74.001632 and  pickup_longitude \u003c -73.974595 and dropoff_latitude \u003e 40.716800     and  dropoff_latitude \u003c  40.717776 and dropoff_longitude \u003e  -74.017682 and dropoff_longitude \u003c -74.000945\ngroup by  hour(pickup_datetime);\n\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390199_-173468966",
+      "id": "20160913-104647_1842940668",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TRIPTIME\thour(CAST(PICKUP_DATETIME AS TIMESTAMP))\tHOWMANYTRIPS\n19.87227599354744\t12\t2273\n16.134364185258818\t22\t4527\n13.53896899783706\t1\t1387\n19.46181869132689\t13\t2379\n19.857287379972565\t16\t1944\n11.471524064171122\t6\t748\n12.382151515151515\t3\t550\n17.688335306498292\t20\t5068\n10.7\t5\t295\n19.383795147504824\t19\t4836\n20.193514328808448\t15\t2210\n21.22272509578544\t17\t2784\n19.009491206873406\t9\t2483\n11.870105062082143\t4\t349\n17.11892012494422\t8\t2241\n15.7719384793964\t23\t3446\n14.170423218792468\t7\t1717\n19.05119448452782\t10\t2079\n16.19808805291443\t21\t4838\n19.832813911472446\t11\t2214\n19.716883774786513\t14\t2303\n12.538556149732623\t2\t935\n15.072140699179972\t0\t2317\n21.0936153593159\t18\t4054\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "How long does it take to ride from Midtown to Downtown?",
+      "text": "%sql\nselect avg(trip_time_in_secs/60) tripTime, hour(pickup_datetime), count(*) howManyTrips, absolute_error(tripTime) from nyctaxi where pickup_latitude \u003c 40.767588 and pickup_latitude \u003e 40.749775 and pickup_longitude \u003e -74.001632 and  pickup_longitude \u003c -73.974595 and dropoff_latitude \u003e 40.716800     and  dropoff_latitude \u003c  40.717776 and dropoff_longitude \u003e  -74.017682 and dropoff_longitude \u003c -74.000945 group by hour(pickup_datetime) with error;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            {
+              "name": "Absolute_Error(TRIPTIME)",
+              "index": 3.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390199_-173468966",
+      "id": "20160913-104646_1938915458",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TRIPTIME\thour(CAST(PICKUP_DATETIME AS TIMESTAMP))\tHOWMANYTRIPS\tAbsolute_Error(TRIPTIME)\n19.87227599354744\t12\t2273\t0.0\n16.134364185258818\t22\t4527\t0.0\n13.53896899783706\t1\t1387\t0.0\n19.46181869132689\t13\t2379\t0.0\n19.857287379972565\t16\t1944\t0.0\n11.471524064171122\t6\t748\t0.0\n12.382151515151515\t3\t550\t0.0\n17.688335306498292\t20\t5068\t0.0\n10.7\t5\t295\t0.0\n19.383795147504824\t19\t4836\t0.0\n20.193514328808448\t15\t2210\t0.0\n21.22272509578544\t17\t2784\t0.0\n19.009491206873406\t9\t2483\t0.0\n11.870105062082143\t4\t349\t0.0\n17.11892012494422\t8\t2241\t0.0\n15.7719384793964\t23\t3446\t0.0\n14.170423218792468\t7\t1717\t0.0\n19.05119448452782\t10\t2079\t0.0\n16.19808805291443\t21\t4838\t0.0\n19.832813911472446\t11\t2214\t0.0\n19.716883774786513\t14\t2303\t0.0\n12.538556149732623\t2\t935\t0.0\n15.072140699179972\t0\t2317\t0.0\n21.0936153593159\t18\t4054\t0.0\n\n\u003cfont color\u003dred\u003eTime required to execute query on sample table : 1115 millis.\u003c/font\u003e\u003cbr\u003e\n\u003cfont color\u003dred\u003eTime required to execute query on base table : 34821 millis.\u003c/font\u003e"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": " What are the worst times of day to take a cab from midtown to JFK airport?",
+      "text": "%sql\nselect avg(trip_time_in_secs/60) tripTime, hour(pickup_datetime) hr, count(*) howManyTrips from nyctaxi where \nround(pickup_latitude,2) \u003e\u003d round(40.754931,2) and \n round(pickup_longitude,2) \u003c\u003d round(-73.974019,2) and \nround(pickup_latitude,2) \u003c\u003d round(40.757321,2) and  \nround(pickup_longitude,2) \u003e\u003d round(-73.995194,2) and \nround(dropoff_latitude,2) \u003e\u003d round(40.632471,2) and \nround(dropoff_longitude,2) \u003c\u003d round(-73.765469,2) and \nround(dropoff_latitude,2) \u003c\u003d round(40.660735,2) and \n round(dropoff_longitude,2) \u003e\u003d round(-73.799458,2) \ngroup by  hour(pickup_datetime) order by hr;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "HR",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "HR",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390199_-173468966",
+      "id": "20160913-105109_332811400",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TRIPTIME\tHR\tHOWMANYTRIPS\n30.16879518072289\t0\t415\n27.680715935334874\t1\t433\n26.99025114155251\t2\t730\n25.72447845804988\t3\t2940\n24.859401020682245\t4\t12410\n25.36859629546976\t5\t22405\n29.363900047183645\t6\t26139\n39.8667174337252\t7\t21011\n41.26681847145695\t8\t17786\n36.46398415097265\t9\t17204\n39.18556349836731\t10\t18885\n35.940018088797096\t11\t24693\n45.13427584040214\t12\t31830\n45.67059291109629\t13\t40467\n51.245572011287685\t14\t50911\n59.868921384799954\t15\t46399\n65.20713313536257\t16\t32328\n55.38588548864757\t17\t25325\n52.0030834766937\t18\t20345\n43.47805410443186\t19\t13591\n34.17742654142582\t20\t8304\n49.1384479510127\t21\t4246\n31.385496508260946\t22\t1957\n30.757573940847323\t23\t834\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": " What are the worst times of day to take a cab from midtown to JFK airport?",
+      "text": "%sql\nselect avg(trip_time_in_secs/60) tripTime, hour(pickup_datetime) hr, count(*) howManyTrips from nyctaxi where \nround(pickup_latitude,2) \u003e\u003d round(40.754931,2) and \n round(pickup_longitude,2) \u003c\u003d round(-73.974019,2) and \nround(pickup_latitude,2) \u003c\u003d round(40.757321,2) and  \nround(pickup_longitude,2) \u003e\u003d round(-73.995194,2) and \nround(dropoff_latitude,2) \u003e\u003d round(40.632471,2) and \nround(dropoff_longitude,2) \u003c\u003d round(-73.765469,2) and \nround(dropoff_latitude,2) \u003c\u003d round(40.660735,2) and \n round(dropoff_longitude,2) \u003e\u003d round(-73.799458,2) \ngroup by  hour(pickup_datetime) order by hr with error;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "HR",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TRIPTIME",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "HR",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390200_-175392711",
+      "id": "20160913-105108_1325523020",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TRIPTIME\tHR\tHOWMANYTRIPS\n30.86440558127856\t0\t543\n28.67199723272571\t1\t392\n26.995319985624075\t2\t655\n24.917437496044343\t3\t2647\n25.337948763003013\t4\t12047\n25.371041725730628\t5\t23124\n29.403109448433444\t6\t26402\n36.01334378675509\t7\t19660\n36.76512711554638\t8\t17760\n36.865655704788544\t9\t17441\n39.36200393463971\t10\t21698\n35.72295854867717\t11\t24276\n38.8805118351323\t12\t28599\n42.71316922462305\t13\t39286\n48.82263121878662\t14\t51022\n55.538832698876845\t15\t46386\n56.04920305016253\t16\t32861\n52.57024807049452\t17\t25131\n48.63604689183071\t18\t18771\n37.76274439625283\t19\t14758\n34.69432546084614\t20\t7706\n32.791092244994886\t21\t3035\n29.00652504149071\t22\t1868\n30.447613373306886\t23\t790\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "When are drivers most busy? By hour of day, day and month",
+      "text": "%sql\n\nselect sum(trip_time_in_secs/3600) totalTimeDrivingInHour, hour(pickup_datetime) from nyctaxi group by hour(pickup_datetime) limit 24 ;\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TOTALTIMEDRIVINGINHOUR",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TOTALTIMEDRIVINGINHOUR",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390200_-175392711",
+      "id": "20160913-105713_157234108",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TOTALTIMEDRIVINGINHOUR\thour(CAST(PICKUP_DATETIME AS TIMESTAMP))\n1861893.5872221468\t12\n1918157.9499998996\t22\n995783.036666669\t1\n1870855.0924999272\t13\n1615877.1005554579\t16\n590603.9375000214\t6\n574231.545833341\t3\n2008847.6497221175\t20\n324621.56277778285\t5\n2214828.0163888177\t19\n1954246.356388827\t15\n1951646.3494443696\t17\n1677259.7099999243\t9\n421394.2555555605\t4\n1595650.4052776983\t8\n1794330.3808332363\t23\n1144153.175833288\t7\n1622055.269166589\t10\n1939324.5941665568\t21\n1729459.8183332619\t11\n2043462.6761110558\t14\n723777.455000014\t2\n1412828.5536110487\t0\n2271174.5472221673\t18\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "When are drivers most busy? By hour of day, day and month",
+      "text": "%sql \nselect sum(trip_time_in_secs/3600) totalTimeDrivingInHour, hour(pickup_datetime), relative_error(totalTimeDrivingInHour) from nyctaxi group by hour(pickup_datetime) limit 24 with error;\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TOTALTIMEDRIVINGINHOUR",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TOTALTIMEDRIVINGINHOUR",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "hour(CAST(PICKUP_DATETIME AS TIMESTAMP))",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390201_-175777460",
+      "id": "20160913-105711_488963268",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TOTALTIMEDRIVINGINHOUR\thour(CAST(PICKUP_DATETIME AS TIMESTAMP))\tSAMPLE_\tRelative_Error(TOTALTIMEDRIVINGINHOUR)\n1885454.211552805\t12\t70323\t0.11996611175227335\n3506182.564988719\t22\t98262\t0.9683169905954007\n4089255.3436084036\t1\t49955\t1.4590806063384358\n1782328.2917458424\t13\t83961\t0.02936130216085172\n852584.5276251256\t6\t52857\t0.5913746809254138\n1693632.9233008504\t16\t86315\t0.1826259036503998\n465765.44512472086\t3\t27981\t0.041324024969846246\n1839870.053085526\t20\t95180\t0.025160884253204674\n290860.4054920375\t5\t37758\t0.03811345572926461\n1954752.9101778355\t19\t86034\t0.025704026470708543\n4539769.445297968\t15\t95373\t1.1767111939691945\n1631031.0441866438\t9\t60977\t0.032808954999116596\n1800279.3182485716\t17\t86645\t0.028396708947575722\n357552.45329166437\t4\t29615\t0.041795481192491955\n1528749.3083628204\t8\t64579\t0.031266402003329544\n1624919.6200048875\t23\t93968\t0.024343303948910038\n1642266.7738889426\t7\t66332\t0.6602708473112794\n1531710.5934191418\t10\t62083\t0.032546682673291624\n1778465.1851381431\t21\t99140\t0.0250384117560425\n1663647.6822576802\t11\t66735\t0.032382664999937145\n1913226.833294806\t14\t96578\t0.03488176129824226\n641856.1124247303\t2\t34644\t0.03584368181681387\n8812708.323419323\t0\t74283\t1.689816978613383\n2606553.3393003624\t18\t88065\t0.2958200334380882\n\n\u003cfont color\u003dred\u003eTime required to execute query on sample table : 3023 millis.\u003c/font\u003e\u003cbr\u003e\n\u003cfont color\u003dred\u003eTime required to execute query on base table : 2077 millis.\u003c/font\u003e"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Percentage Tip",
+      "text": "%sql\nSELECT (ROUND( (tip_amount / fare_amount) * 100 )) tip_pct, avg(fare_amount), count(*) trips\nFROM taxifare WHERE payment_type\u003d\u0027CRD\u0027 and fare_amount \u003e 0.00 and tip_amount \u003c 50\nGROUP BY (ROUND( tip_amount / fare_amount * 100 ))\nORDER BY (ROUND( tip_amount / fare_amount * 100 )) limit 30;",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "TIP_PCT",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPS",
+              "index": 2.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390201_-175777460",
+      "id": "20160913-110707_798631377",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TIP_PCT\tavg(FARE_AMOUNT)\tTRIPS\n0.0\t17.390655248393266\t2969042\n1.0\t14.653081153141146\t72012\n2.0\t20.772614025192706\t53190\n3.0\t25.61712489715795\t69281\n4.0\t25.70779788500825\t183074\n5.0\t20.67539952749994\t362328\n6.0\t18.60479960166695\t673808\n7.0\t16.366277235243054\t921600\n8.0\t15.533000382463877\t1286396\n9.0\t15.200309078418185\t1397380\n10.0\t16.638903067860007\t2118317\n11.0\t13.270391225941404\t2596837\n12.0\t14.530937682530938\t1866122\n13.0\t12.119563171713697\t3367227\n14.0\t12.501209590414508\t2438685\n15.0\t13.18131590782298\t2459268\n16.0\t16.137789724650563\t1090941\n17.0\t11.008520390769975\t2408271\n18.0\t9.936953251149957\t1948326\n19.0\t16.991678380163563\t1052205\n20.0\t15.236613077490462\t13568536\n21.0\t13.196096744517098\t15291802\n22.0\t10.661907009419753\t9186866\n23.0\t10.364547755828154\t4327231\n24.0\t11.45705609189492\t2512609\n25.0\t13.49774911223061\t4517502\n26.0\t14.798435502232296\t3190436\n27.0\t9.242374698782108\t2396106\n28.0\t12.693267131119484\t1253231\n29.0\t10.074595033302613\t1127389\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Percentage Tip",
+      "text": "%sql\nSELECT (ROUND( (tip_amount / fare_amount) * 100 )) tip_pct, avg(fare_amount), count(*) trips\nFROM taxifare WHERE payment_type\u003d\u0027CRD\u0027 and fare_amount \u003e 0.00 and tip_amount \u003c 50\nGROUP BY (ROUND( tip_amount / fare_amount * 100 ))\nORDER BY (ROUND( tip_amount / fare_amount * 100 )) limit 30 with error;\n",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "TIP_PCT",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "TRIPS",
+              "index": 2.0,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "TIP_PCT",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "avg(FARE_AMOUNT)",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 6.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390201_-175777460",
+      "id": "20160913-110616_1099195513",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "TIP_PCT\tavg(FARE_AMOUNT)\tTRIPS\n0.0\t17.41000538470245\t2956003\n1.0\t14.336779909646156\t68402\n2.0\t21.409883208829932\t56879\n3.0\t25.804772631693936\t67008\n4.0\t25.56189139350229\t186817\n5.0\t20.375605535215556\t362558\n6.0\t18.58071076783336\t668056\n7.0\t16.295046285916765\t922042\n8.0\t15.57048883947968\t1288432\n9.0\t15.222837982296777\t1406272\n10.0\t16.61841258926014\t2100307\n11.0\t13.287524044191297\t2593749\n12.0\t14.514168524780938\t1848594\n13.0\t12.083624210808956\t3334712\n14.0\t12.508160117978989\t2465008\n15.0\t13.1354869433921\t2491860\n16.0\t16.17142902225799\t1097786\n17.0\t11.052720803600675\t2418407\n18.0\t9.982609452174893\t1956388\n19.0\t17.107099605733453\t1059922\n20.0\t15.184710501450613\t13619945\n21.0\t13.170295772310395\t15252066\n22.0\t10.6481481184697\t9124462\n23.0\t10.308130424656058\t4312900\n24.0\t11.513759316220272\t2502763\n25.0\t13.456466815239438\t4498132\n26.0\t14.822824814885903\t3188690\n27.0\t9.226594778870526\t2399726\n28.0\t12.63269944311197\t1238852\n29.0\t10.095832565237092\t1132757\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%sql\nselect count(*) as sample_cnt from NYCTAXI_DISTANCE_SAMPLE",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "SAMPLE_CNT",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "SAMPLE_CNT",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "editorMode": "ace/mode/sql",
+        "colWidth": 12.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390202_-174623213",
+      "id": "20160913-103213_147213586",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "SAMPLE_CNT\n1707796\n"
+      },
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "",
+      "dateUpdated": "Sep 14, 2016 2:26:30 PM",
+      "config": {
+        "enabled": true,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "editorMode": "ace/mode/scala",
+        "colWidth": 12.0
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1473843390202_-174623213",
+      "id": "20160913-103502_576756921",
+      "dateCreated": "Sep 14, 2016 2:26:30 PM",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "Demo",
+  "id": "2BY32KFZ9",
+  "angularObjects": {
+    "2BYJ75MWH:shared_process": [],
+    "2BYAS9N3N:shared_process": [],
+    "2BWZHRP3R:shared_process": [],
+    "2BY8V1JR3:shared_process": [],
+    "2BVTC32MW:shared_process": [],
+    "2BWQMGMCG:shared_process": [],
+    "2BX88FGUR:shared_process": [],
+    "2BXWG6KAM:shared_process": [],
+    "2BXT9P55X:shared_process": [],
+    "2BVR366HS:shared_process": [],
+    "2BV3Z9XSP:shared_process": [],
+    "2BW1TFDX2:shared_process": [],
+    "2BWZ5N3RB:shared_process": [],
+    "2BUQPNS3R:shared_process": [],
+    "2BUQKGT48:shared_process": [],
+    "2BWVNXKGJ:shared_process": [],
+    "2BUP6AKRM:shared_process": [],
+    "2BVGKNRAN:shared_process": []
+  },
+  "config": {
+    "looknfeel": "default"
+  },
+  "info": {}
+}
