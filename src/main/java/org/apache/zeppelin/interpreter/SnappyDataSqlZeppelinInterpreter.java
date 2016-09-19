@@ -55,7 +55,7 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
  *
  */
 public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
-  public static final String SHOW_APPROX_RESULTS_FIRST = "show-approx-results-first";
+  public static final String SHOW_APPROX_RESULTS_FIRST = "show-instant-results-first";
   static Map<String, ParagraphState> paragraphStateMap = new HashMap<String, ParagraphState>();
   private Logger logger = LoggerFactory.getLogger(SnappyDataSqlZeppelinInterpreter.class);
   static final String DEFAULT_KEY = "default";
