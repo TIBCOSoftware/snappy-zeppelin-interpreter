@@ -11,7 +11,7 @@ dist/*
        src_managed/
        project/boot/
        project/plugins/project/
-
+build/
 # gradle specific
 .gradle/
 
