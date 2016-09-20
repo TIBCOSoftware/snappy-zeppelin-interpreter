@@ -207,23 +207,25 @@ public class SnappyDataSqlZeppelinInterpreter extends JDBCInterpreter {
             msg.append(NEWLINE);
             displayRowCount++;
           }
-          if (isApproxQuery && displayRowCount > 0) {
-            paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);
-            msg.append("\n<font color=red>Time required to execute query on sample table : "
-                    + (endTime - startTime) + " millis.Executing base query ...</font>");
+          if (displayRowCount > 0) {
+            if (isApproxQuery) {
+              paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);
+              msg.append("\n<font color=red>Time required to execute query on sample table : "
+                      + (endTime - startTime) + " millis.Executing base query ...</font>");
 
-          } else if (paragraphStateMap.containsKey(paragraphId) && displayRowCount > 0) {
+            } else if (paragraphStateMap.containsKey(paragraphId)) {
 
-            paragraphStateMap.get(paragraphId).setTimeRequiredForBaseQuery(endTime - startTime);
-            msg.append("\n<font color=red>Time required to execute query on sample table : "
-                    + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
-            msg.append("\n<font color=red>Time required to execute query on base table : "
-                    + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
-            paragraphStateMap.remove(paragraphId);
-          } else {
-            msg.append("\n<font color=red>Time required to execute query : "
-                    + (endTime - startTime) + " millis.</font>");
+              paragraphStateMap.get(paragraphId).setTimeRequiredForBaseQuery(endTime - startTime);
+              msg.append("\n<font color=red>Time required to execute query on sample table : "
+                      + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
+              msg.append("\n<font color=red>Time required to execute query on base table : "
+                      + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
+              paragraphStateMap.remove(paragraphId);
+            } else {
+              msg.append("\n<font color=red>Time required to execute query : "
+                      + (endTime - startTime) + " millis.</font>");
 
+            }
           }
         } else {
           // Response contains either an update count or there are no results.
