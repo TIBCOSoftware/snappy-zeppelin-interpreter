@@ -28,8 +28,8 @@ ext {
     buildDir = 'build-artifacts'
     sparkVersion = '2.0.0'
     snappySparkVersion = '2.0.1-1'
-    snappyDataVersion = '0.6-SNAPSHOT'
-    gemfireVersion = "1.5.1-SNAPSHOT"
+    snappyDataVersion = '0.6'
+    gemfireVersion = "1.5.1"
 }
 
 configurations {
