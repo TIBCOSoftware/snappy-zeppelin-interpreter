@@ -8,6 +8,7 @@ Snappydata interpreter for Apache Zeppelin
 
 ## Installing and Running Snappydata Interpreter:
 In order to use zeppelin with SnappyData following are the steps that needs to be performed:
+
 1. Download latest snappydata binary and extract it
 2. Copy snappydata zeppelin interpreter [jar](https://github.com/SnappyDataInc/zeppelin-interpreter/releases/download/v0.6/snappydata-zeppelin-0.6.jar) in the jars directory of snappydata
 3. Enable snappydata zeppelin interpreter by setting **_zeppelin.interpreter.enable_** to true in lead node configuration
