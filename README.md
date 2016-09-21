@@ -8,15 +8,22 @@ Snappydata interpreter for Apache Zeppelin
 
 ## Installing and Running Snappydata Interpreter:
 In order to use zeppelin with SnappyData following are the steps that needs to be performed:
-1) Download latest snappydata binary and extract it
-2) Copy snappydata zeppelin interpreter jar in the jars directory of snappydata
-3) Enable snappydata zeppelin interpreter by setting **_zeppelin.interpreter.enable_** to true in lead node configuration
-4) Start SnappyData cluster
+1. Download latest snappydata binary and extract it
+2. Copy snappydata zeppelin interpreter [jar](https://github.com/SnappyDataInc/zeppelin-interpreter/releases/download/v0.6/snappydata-zeppelin-0.6.jar) in the jars directory of snappydata
+3. Enable snappydata zeppelin interpreter by setting **_zeppelin.interpreter.enable_** to true in lead node configuration
+4. Start SnappyData cluster
 Once snappydata cluster is being set up you have to connect to snappydata interpreter from zeppelin server.Following are the steps used to connect to remotely executing snappydata interpreter from zeppelin server:
-1) Login to the zeppelin UI and browse for interpreter settings
-2) Search for snappydata interpreter settings.Click edit the snappydata interpreter and then select "Connect to existing process"
-3) Specify host on which snappydata lead node is executing along with the snappydata zeppelin port (Default: 3768)
-4) Edit the other properties if needed.Following image shows snappydata interpreter properties:
+1. Install snappydata interpreter in zeppelin by executing following command from zeppelin's bin directory
+`./install-interpreter.sh --name snappydata --artifact io.snappydata:snappydata-zeppelin:0.6` 
+2. Rename **zeppelin-site.xml.template** to **zeppelin-site.xml**
+3. Add interpreter class names (**org.apache.zeppelin.interpreter.SnappyDataZeppelinInterpreter,org.apache.zeppelin.interpreter.SnappyDataSqlZeppelinInterpreter**) into **zeppelin.interpreters** property in configuration **zeppeline-site.xml**
+4. Restart zeppelin server
+5. Login to the zeppelin UI and browse for interpreter settings
+6. Create and bind snappydata zeppelin by Clicking on  **+Create** button in the interpreter page, the interpreter drop-down list box will show all the available interpreters on your server.
+7. Select **snappydata** interpreter from the dropdown and provide suitable name
+8. Click on  **"Connect to existing process"** checkbox.It will enable 2 options to specfiy **host** and **port** for snappydata interpreter
+9. Specify host on which snappydata **lead** node is executing along with the snappydata zeppelin port (Default: 3768)
+10. Edit the other properties if needed.Following image shows snappydata interpreter properties:
   ![Snappydata Interpreter settings](images/snappydata_interpreter_properties.png)
 
 ## Supported properties and their values:
@@ -24,7 +31,7 @@ Once snappydata cluster is being set up you have to connect to snappydata interp
   ------------ | -------------| ------------ |
   default.driver  | Content from cell 2 | 
   snappydata.store.locators   | localhost:10334  | Used to specify locator URI (only **local/split** mode)|
-  master | locali`[*]` | Used to specify spark master URI (only **local/split** mode)|
+  master | local`[*]` | Used to specify spark master URI (only **local/split** mode)|
   zeppelin.jdbc.concurrent.use | true | Used to specify which zeppelin scheduler should be used.True for Fair and False for FIFO |
 
 ## Using snappydata zeppelin interpreter:
