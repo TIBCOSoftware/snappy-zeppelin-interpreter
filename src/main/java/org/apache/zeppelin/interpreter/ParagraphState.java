@@ -22,6 +22,16 @@ public class ParagraphState {
   long timeRequiredForApproxQuery;
   long timeRequiredForBaseQuery;
 
+  boolean isCancelCalled = false;
+  public boolean isCancelCalled() {
+    return isCancelCalled;
+  }
+
+  public void setIsCancelCalled(boolean isCancelCalled) {
+    this.isCancelCalled = isCancelCalled;
+  }
+
+
   public boolean isExecuteApproxQuery() {
     return executeApproxQuery;
   }
@@ -45,4 +55,7 @@ public class ParagraphState {
   public void setTimeRequiredForBaseQuery(long timeRequiredForBaseQuery) {
     this.timeRequiredForBaseQuery = timeRequiredForBaseQuery;
   }
+
+
+
 }

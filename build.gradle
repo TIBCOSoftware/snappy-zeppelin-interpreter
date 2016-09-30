@@ -54,6 +54,7 @@ dependencies {
     provided 'org.scala-lang:scala-compiler:' + scalaVersion
     provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
     provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+    provided "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
     //provided "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
     compile "io.snappydata:gemfire-core:" + gemfireVersion
 }
@@ -200,6 +201,7 @@ uploadArchives {
         compile "io.snappydata:gemfire-core:" + gemfireVersion
         compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
         compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
+        compile "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
        //compile "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
     }
 }
