@@ -50,9 +50,6 @@ import scala.collection.mutable.HashSet;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -139,6 +136,8 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     }
 
     sc.setJobGroup(getJobGroup(contextInterpreter), "Zeppelin", false);
+
+    Thread.currentThread().setContextClassLoader(org.apache.spark.util.Utils.getSparkClassLoader());
     SnappyContext snc = new SnappyContext(sc);
     String id = contextInterpreter.getParagraphId();
 
@@ -153,7 +152,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
        * allow user to set properties for JDBC connection
        *
        */
-      String queries[] = cmd.split(";");
+      String queries[] = cmd.split(SEMI_COLON);
       for (int i = 0; i < queries.length - 1; i++) {
         InterpreterResult result = executeSql(snc, queries[i], contextInterpreter, false);
         if (result.code().equals(InterpreterResult.Code.ERROR)) {
@@ -238,10 +237,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     try {
 
       StringBuilder msg = new StringBuilder();
-      boolean isTableType = false;
 
-
-      ResultSet resultSet = null;
       try {
 
         long startTime = System.currentTimeMillis();
@@ -252,7 +248,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
         }
         long endTime = System.currentTimeMillis();
 
-        if (null != data) {
+        if (null != data && data != EMPTY_STRING) {
           msg.append(data);
           msg.append(NEWLINE);
 
