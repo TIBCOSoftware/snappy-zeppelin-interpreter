@@ -238,45 +238,42 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
 
       StringBuilder msg = new StringBuilder();
 
-      try {
-
-        long startTime = System.currentTimeMillis();
-        Dataset ds = snc.sql(sql);
-        String data = null;
-        if (null != ds) {
-          data = ZeppelinContext.showDF(snc.sparkContext(), interpreterContext, ds, maxResult);
-        }
-        long endTime = System.currentTimeMillis();
-
-        if (null != data && data != EMPTY_STRING) {
-          msg.append(data);
-          msg.append(NEWLINE);
-
-
-          if (isApproxQuery) {
-            paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);
-            msg.append("\n<font color=red>Time required to execute query on sample table : "
-                    + (endTime - startTime) + " millis.Executing base query ...</font>");
-
-          } else if (paragraphStateMap.containsKey(paragraphId)) {
-
-            paragraphStateMap.get(paragraphId).setTimeRequiredForBaseQuery(endTime - startTime);
-            msg.append("\n<font color=red>Time required to execute query on sample table : "
-                    + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
-            msg.append("\n<font color=red>Time required to execute query on base table : "
-                    + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
-            paragraphStateMap.remove(paragraphId);
-          } else {
-            msg.append("\n<font color=red>Time required to execute query : "
-                    + (endTime - startTime) + " millis.</font>");
-
-          }
-        } else {
-          // Response contains either an update count or there are no results.
-        }
-      } finally {
-
+      long startTime = System.currentTimeMillis();
+      Dataset ds = snc.sql(sql);
+      String data = null;
+      if (null != ds) {
+        data = ZeppelinContext.showDF(snc.sparkContext(), interpreterContext, ds, maxResult);
       }
+      long endTime = System.currentTimeMillis();
+
+      data = data.trim();
+      if (null != data && data != EMPTY_STRING && data.split("\n").length>1) {
+        msg.append(data);
+        msg.append(NEWLINE);
+
+
+        if (isApproxQuery) {
+          paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);
+          msg.append("\n<font color=red>Time required to execute query on sample table : "
+                  + (endTime - startTime) + " millis.Executing base query ...</font>");
+
+        } else if (paragraphStateMap.containsKey(paragraphId)) {
+
+          paragraphStateMap.get(paragraphId).setTimeRequiredForBaseQuery(endTime - startTime);
+          msg.append("\n<font color=red>Time required to execute query on sample table : "
+                  + paragraphStateMap.get(paragraphId).getTimeRequiredForApproxQuery() + " millis.</font><br>");
+          msg.append("\n<font color=red>Time required to execute query on base table : "
+                  + paragraphStateMap.get(paragraphId).getTimeRequiredForBaseQuery() + " millis.</font>");
+          paragraphStateMap.remove(paragraphId);
+        } else {
+          msg.append("\n<br><font color=red>Time required to execute query : "
+                  + (endTime - startTime) + " millis.</font>");
+
+        }
+      } else {
+        // Response contains either an update count or there are no results.
+      }
+
 
       return new InterpreterResult(InterpreterResult.Code.SUCCESS, msg.toString());
 
