@@ -32,6 +32,9 @@
  */
 package org.apache.zeppelin.interpreter;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkContext;
 import org.apache.spark.scheduler.ActiveJob;
@@ -53,9 +56,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 
@@ -64,7 +65,7 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
  * queries
  */
 public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
-  public static final String SHOW_APPROX_RESULTS_FIRST = "show-instant-results-first";
+  private static final String SHOW_APPROX_RESULTS_FIRST = "show-instant-results-first";
   static Map<String, ParagraphState> paragraphStateMap = new HashMap<String, ParagraphState>();
   private Logger logger = LoggerFactory.getLogger(SnappyDataSqlZeppelinInterpreter.class);
   private static final char NEWLINE = '\n';
@@ -73,6 +74,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   private static final String EMPTY_STRING = "";
   private static final String SEMI_COLON = ";";
   SparkContext sc = null;
+  LoadingCache<String, SnappyContext> paragraphContextCache = null;
 
 
   public SnappyDataSqlZeppelinInterpreter(Properties property) {
@@ -88,6 +90,24 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       sc = SnappyContext.globalSparkContext();
     }
     this.maxResult = Integer.parseInt(getProperty("zeppelin.spark.maxResult"));
+
+    if (null != getProperty(Constants.FS_S3A_ACCESS_KEY) && null != getProperty(Constants.FS_S3A_SECRET_KEY)) {
+      sc.hadoopConfiguration().set(Constants.FS_S3A_IMPL, "org.apache.hadoop.fs.s3a.S3AFileSystem");
+      sc.hadoopConfiguration().set(Constants.FS_S3A_ACCESS_KEY, getProperty(Constants.FS_S3A_ACCESS_KEY));
+      sc.hadoopConfiguration().set(Constants.FS_S3A_SECRET_KEY, getProperty(Constants.FS_S3A_SECRET_KEY));
+    }
+
+    paragraphContextCache = CacheBuilder.newBuilder()
+            .maximumSize(50)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build(
+                    new CacheLoader<String, SnappyContext>() {
+                      @Override
+                      public SnappyContext load(String paragraphId) throws Exception {
+                        return new SnappyContext(sc);
+                      }
+                    }
+            );
   }
 
   private String getJobGroup(InterpreterContext context) {
@@ -138,8 +158,19 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     sc.setJobGroup(getJobGroup(contextInterpreter), "Zeppelin", false);
 
     Thread.currentThread().setContextClassLoader(org.apache.spark.util.Utils.getSparkClassLoader());
-    SnappyContext snc = new SnappyContext(sc);
+    //SnappyContext snc = new SnappyContext(sc);
     String id = contextInterpreter.getParagraphId();
+    SnappyContext snc = null;
+    try {
+      snc = paragraphContextCache.get(id);
+      if (null != getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS)) {
+        snc.setConf(Constants.SPARK_SQL_SHUFFLE_PARTITIONS,
+                getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS));
+      }
+    } catch (ExecutionException e) {
+      logger.error("Error initializing SnappyContext");
+      e.printStackTrace();
+    }
 
     cmd = cmd.trim();
     if (cmd.startsWith(SHOW_APPROX_RESULTS_FIRST)) {
