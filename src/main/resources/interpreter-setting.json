@@ -1,7 +1,7 @@
 [
   {
     "group": "snappydata",
-    "name": "snappydata",
+    "name": "spark",
     "className": "org.apache.zeppelin.interpreter.SnappyDataZeppelinInterpreter",
     "properties": {
       "zeppelin.spark.printREPLOutput": {
@@ -76,7 +76,13 @@
         "propertyName": "zeppelin.jdbc.concurrent.use",
         "defaultValue": "true",
         "description": "Use parallel scheduler"
-     }
+     },
+      "spark.sql.shuffle.partitions": {
+        "envName": null,
+        "propertyName": "spark.sql.shuffle.partitions",
+        "defaultValue": "7",
+        "description": "Use parallel scheduler"
+      }
     }
   }
 ]
