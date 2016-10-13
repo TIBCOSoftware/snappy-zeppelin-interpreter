@@ -88,6 +88,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   public void open() {
     if (null != SnappyContext.globalSparkContext()) {
       sc = SnappyContext.globalSparkContext();
+      sc.hadoopConfiguration().set(Constants.FS_S3A_CONNECTION_MAXIMUM,"1000");
     }
     this.maxResult = Integer.parseInt(getProperty("zeppelin.spark.maxResult"));
 
@@ -95,6 +96,10 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       sc.hadoopConfiguration().set(Constants.FS_S3A_IMPL, "org.apache.hadoop.fs.s3a.S3AFileSystem");
       sc.hadoopConfiguration().set(Constants.FS_S3A_ACCESS_KEY, getProperty(Constants.FS_S3A_ACCESS_KEY));
       sc.hadoopConfiguration().set(Constants.FS_S3A_SECRET_KEY, getProperty(Constants.FS_S3A_SECRET_KEY));
+      if (null != getProperty(Constants.FS_S3A_CONNECTION_MAXIMUM)) {
+        sc.hadoopConfiguration().set(Constants.FS_S3A_CONNECTION_MAXIMUM,
+                getProperty(Constants.FS_S3A_CONNECTION_MAXIMUM));
+      }
     }
 
     paragraphContextCache = CacheBuilder.newBuilder()
