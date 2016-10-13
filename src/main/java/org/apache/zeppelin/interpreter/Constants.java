@@ -21,4 +21,5 @@ public class Constants {
   public static final String FS_S3A_SECRET_KEY = "fs.s3a.secret.key";
   public static final String FS_S3A_IMPL = "fs.s3a.impl";
   public static final String SPARK_SQL_SHUFFLE_PARTITIONS = "spark.sql.shuffle.partitions";
+  public static final String FS_S3A_CONNECTION_MAXIMUM = "fs.s3a.connection.maximum";
 }
