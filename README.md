@@ -30,7 +30,7 @@ Once snappydata cluster is being set up you have to connect to snappydata interp
 ## Supported properties and their values:
   First Header | Second Header | Description |
   ------------ | -------------| ------------ |
-  default.driver  | Content from cell 2 | 
+  default.driver  | JDBC Driver  | 
   snappydata.store.locators   | localhost:10334  | Used to specify locator URI (only **local/split** mode)|
   master | local`[*]` | Used to specify spark master URI (only **local/split** mode)|
   zeppelin.jdbc.concurrent.use | true | Used to specify which zeppelin scheduler should be used.True for Fair and False for FIFO |
