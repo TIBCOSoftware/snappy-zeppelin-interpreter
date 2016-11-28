@@ -1,0 +1,181 @@
+{
+  "paragraphs": [
+    {
+      "text": "%spark\nprintln(s\"\"\"%html\n\u003ch1\u003eIntroducing SnappyData iSight \u003c/h1\u003e\n\u003ch2\u003eLightning fast visualizations on large data sets at a fraction of the cost and complexity\u003c/h2\u003e\n\u003cp\u003eIf you are already familiar with the Snappydata platform and its Synopses data engine you can directly try out the demos\u003c/p\u003e\n\u003cdiv style\u003d\"font-weight: bold;\"\u003e\n  \u003ch2\u003e \u003ca href\u003d\"http://localhost:8080/#/notebook/2BX13CCNZ\" target\u003d\"_blank\"\u003eNYC Taxi Analytics\u003c/a\u003e | \u003ca href\u003d\"http://localhost:8080/#/notebook/2BTESU77P\" target\u003d\"_blank\"\u003eAirline Data Analytics\u003c/a\u003e \u003c/h2\u003e\n\u003c/div\u003e\n\u003cp\u003eThe visualization is based on \u003ca href\u003d\"https://zeppelin.apache.org/docs/0.6.1/index.html\"\u003eApache Zeppelin\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003ci\u003eNote: The two notebooks shown above are primarily focused on the Synopses Data Engine capabilities of  SnappyData. Other features of our database platform such as ultra-fast column and row store are not explored here.\u003c/i\u003e\u003c/p\u003e\n\n\"\"\")\n",
+      "dateUpdated": "Oct 19, 2016 10:22:57 AM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": false,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1475500028804_1061803022",
+      "id": "20161003-130708_441085266",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003ch1\u003eIntroducing SnappyData iSight \u003c/h1\u003e\n\u003ch2\u003eLightning fast visualizations on large data sets at a fraction of the cost and complexity\u003c/h2\u003e\n\u003cp\u003eIf you are already familiar with the Snappydata platform and its Synopses data engine you can directly try out the demos\u003c/p\u003e\n\u003cdiv style\u003d\"font-weight: bold;\"\u003e\n  \u003ch2\u003e \u003ca href\u003d\"http://localhost:8080/#/notebook/2BX13CCNZ\" target\u003d\"_blank\"\u003eNYC Taxi Analytics\u003c/a\u003e | \u003ca href\u003d\"http://localhost:8080/#/notebook/2BTESU77P\" target\u003d\"_blank\"\u003eAirline Data Analytics\u003c/a\u003e \u003c/h2\u003e\n\u003c/div\u003e\n\u003cp\u003eThe visualization is based on \u003ca href\u003d\"https://zeppelin.apache.org/docs/0.6.1/index.html\"\u003eApache Zeppelin\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003ci\u003eNote: The two notebooks shown above are primarily focused on the Synopses Data Engine capabilities of  SnappyData. Other features of our database platform such as ultra-fast column and row store are not explored here.\u003c/i\u003e\u003c/p\u003e\n\n\n"
+      },
+      "dateCreated": "Oct 3, 2016 6:37:08 AM",
+      "dateStarted": "Oct 19, 2016 9:16:40 AM",
+      "dateFinished": "Oct 19, 2016 9:16:41 AM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark\nprintln(s\"\"\"%html\n\u003ch2\u003eSnappyData iSight - Immediate inSight using Data Synopses\u003c/h2\u003e\n\n\u003cp\u003eWith iSight, users immediately get their almost-perfect answer to analytical queries within a couple of seconds while the full answer is computed in the background. Depending on the immediate answer, users can opt to cancel the full execution early, if they are either satisfied with the almost-perfect initial answer and if they are no longer interested in seeing the final results based on the initial results. This can lead to dramatically higher productivity and significantly less resource consumption in multi-tenant and concurrent workloads on shared clusters. \u003c/p\u003e\n\n\u003cp\u003eWhile in-memory analytics can be fast, it is still expensive and cumbersome to provision large clusters. Instead, iSight allows you to retain your data in existing databases and disparate sources and only caches a fraction of the data using stratified sampling and other techniques. In many cases, data explorers can use their laptops and run high speed interactive analytics over billions of records. Unlike existing optimization techniques based on OLAP cubes or in-memory extracts that can consume a lot of resources and work for apriori known queries, the SnappyData Synopses data structures are designed to work for any ad-hoc query. \u003c/p\u003e\n\n\u003ch3\u003e Detailed documentation can be found \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e here \u003c/a\u003e  \u003c/h3\u003e\n\n\u003ch2\u003eHow does it work?\u003c/h2\u003e\n\n\u003cp\u003eRather than treating a sample (or other statistically generated structures) as an explicit target for a query, sampling is deeply integrated into a general purpose SQL query engine and treated the same as how databases treat indexes - a optimizer decides if and where the sample can be used in lieu of the \"exact\" table to return an answer within the user specified accuracy constraint (offered through simple SQL extensions). When a sample cannot be used, the query is automatically evaluated on in-memory columnar or row tables or, if absent, directly go to the source (e.g. a RDBMS, Hadoop, NoSQL, CSV, JSON, S3, etc) to evaluate the query. Users use a simple knob they can turn to tradeoff accuracy for speed. Interestingly, as we will show through the demo notebooks, the imperfections in the answers in many cases make zero difference to your visualized result.\u003c/p\u003e\n\n\u003cp\u003eFigure(1) provides an illustration of how samples are managed in-memory. Figure(2) illustrates the query engine design with Synopses.\u003c/p\u003e\n\n\u003cp\u003e\u003cimg src\u003d\"https://docs.google.com/uc?id\u003d0B7_m-QBIIyBQSktkQW1rTUpFUG8\" border\u003d\"10\" width\u003d\"640\" height\u003d\"480\" style\u003d\"border:2px solid black\"\u003e\u003c/img\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003cimg src\u003d\"https://docs.google.com/uc?id\u003d0B7_m-QBIIyBQWkxjVmhRS20xdnM\" border\u003d\"10\" width\u003d\"640\" height\u003d\"480\" style\u003d\"border:2px solid black\"\u003e\u003c/img\u003e\u003c/p\u003e\n\n\u003cp\u003eRandom, Uniform sampling is nothing new in the data mining world but they mostly only work for static data sets. Snappydata supports streaming data like IoT time series and continuously adapts its sampling fraction by over-sampling data groups(i.e dimensions) that have low representation in the input data and under-sampling when the data group is heavily represented in the input (See \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e Docs \u003c/a\u003e for more details). The end result is far more accurate answers than a random sample while still consuming fewer resources. \u003c/p\u003e\n\n\u003cp\u003eSampling is rather intuitive and we can all easily imagine being able to compute an answer much more efficiently working with a small fraction of the data. While this is simple, it is quite challenging to compute an error estimate with high confidence for adhoc queries without having to scan the full data set. In other words it is the ability to tell you how good your answer is without looking through the entire data is where the power lies. While the \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e docs \u003c/a\u003e and literature goes through a range of statistical algorithms, a common statistical approach is to use the \u003ca href\u003d\"https://en.wikipedia.org/wiki/Bootstrapping_(statistics)\" target\u003d\"_blank\"\u003e \u0027Bootstrap\u0027 \u003c/a\u003e algorithm. Unfortunately, this computation requires re-executing the query hundreds of times over the resamples of the sample table which can be very expensive. Instead, we use single pass algorithms so error computation execute in a fraction of a second.\u003c/p\u003e\n \n\"\"\")",
+      "dateUpdated": "Nov 18, 2016 10:19:50 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": false,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1475494695191_617399503",
+      "id": "20161003-113815_1982799556",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003ch2\u003eSnappyData iSight - Immediate inSight using Data Synopses\u003c/h2\u003e\n\n\u003cp\u003eWith iSight, users immediately get their almost-perfect answer to analytical queries within a couple of seconds while the full answer is computed in the background. Depending on the immediate answer, users can opt to cancel the full execution early, if they are either satisfied with the almost-perfect initial answer and if they are no longer interested in seeing the final results based on the initial results. This can lead to dramatically higher productivity and significantly less resource consumption in multi-tenant and concurrent workloads on shared clusters. \u003c/p\u003e\n\n\u003cp\u003eWhile in-memory analytics can be fast, it is still expensive and cumbersome to provision large clusters. Instead, iSight allows you to retain your data in existing databases and disparate sources and only caches a fraction of the data using stratified sampling and other techniques. In many cases, data explorers can use their laptops and run high speed interactive analytics over billions of records. Unlike existing optimization techniques based on OLAP cubes or in-memory extracts that can consume a lot of resources and work for apriori known queries, the SnappyData Synopses data structures are designed to work for any ad-hoc query. \u003c/p\u003e\n\n\u003ch3\u003e Detailed documentation can be found \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e here \u003c/a\u003e  \u003c/h3\u003e\n\n\u003ch2\u003eHow does it work?\u003c/h2\u003e\n\n\u003cp\u003eRather than treating a sample (or other statistically generated structures) as an explicit target for a query, sampling is deeply integrated into a general purpose SQL query engine and treated the same as how databases treat indexes - a optimizer decides if and where the sample can be used in lieu of the \"exact\" table to return an answer within the user specified accuracy constraint (offered through simple SQL extensions). When a sample cannot be used, the query is automatically evaluated on in-memory columnar or row tables or, if absent, directly go to the source (e.g. a RDBMS, Hadoop, NoSQL, CSV, JSON, S3, etc) to evaluate the query. Users use a simple knob they can turn to tradeoff accuracy for speed. Interestingly, as we will show through the demo notebooks, the imperfections in the answers in many cases make zero difference to your visualized result.\u003c/p\u003e\n\n\u003cp\u003eFigure(1) provides an illustration of how samples are managed in-memory. Figure(2) illustrates the query engine design with Synopses.\u003c/p\u003e\n\n\u003cp\u003e\u003cimg src\u003d\"https://docs.google.com/uc?id\u003d0B7_m-QBIIyBQSktkQW1rTUpFUG8\" border\u003d\"10\" width\u003d\"640\" height\u003d\"480\" style\u003d\"border:2px solid black\"\u003e\u003c/img\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003cimg src\u003d\"https://docs.google.com/uc?id\u003d0B7_m-QBIIyBQWkxjVmhRS20xdnM\" border\u003d\"10\" width\u003d\"640\" height\u003d\"480\" style\u003d\"border:2px solid black\"\u003e\u003c/img\u003e\u003c/p\u003e\n\n\u003cp\u003eRandom, Uniform sampling is nothing new in the data mining world but they mostly only work for static data sets. Snappydata supports streaming data like IoT time series and continuously adapts its sampling fraction by over-sampling data groups(i.e dimensions) that have low representation in the input data and under-sampling when the data group is heavily represented in the input (See \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e Docs \u003c/a\u003e for more details). The end result is far more accurate answers than a random sample while still consuming fewer resources. \u003c/p\u003e\n\n\u003cp\u003eSampling is rather intuitive and we can all easily imagine being able to compute an answer much more efficiently working with a small fraction of the data. While this is simple, it is quite challenging to compute an error estimate with high confidence for adhoc queries without having to scan the full data set. In other words it is the ability to tell you how good your answer is without looking through the entire data is where the power lies. While the \u003ca href\u003d\"http://snappydatainc.github.io/snappydata/aqp/\" target\u003d\"_blank\"\u003e docs \u003c/a\u003e and literature goes through a range of statistical algorithms, a common statistical approach is to use the \u003ca href\u003d\"https://en.wikipedia.org/wiki/Bootstrapping_(statistics)\" target\u003d\"_blank\"\u003e \u0027Bootstrap\u0027 \u003c/a\u003e algorithm. Unfortunately, this computation requires re-executing the query hundreds of times over the resamples of the sample table which can be very expensive. Instead, we use single pass algorithms so error computation execute in a fraction of a second.\u003c/p\u003e\n \n\n"
+      },
+      "dateCreated": "Oct 3, 2016 5:08:15 AM",
+      "dateStarted": "Nov 18, 2016 10:19:43 PM",
+      "dateFinished": "Nov 18, 2016 10:19:44 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark\nprintln(s\"\"\"%html\n\u003ch2\u003eSnappyData iSight Demos\u003c/h2\u003e\n\n\u003cdiv style\u003d\"font-weight: bold;\"\u003e\n   \u003ch2\u003e\u003ca href\u003d\"https://www.zeppelinhub.com/viewer/notebooks/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL1NuYXBweURhdGFJbmMvemVwcGVsaW4taW50ZXJwcmV0ZXIvbm90ZXMvZXhhbXBsZXMvbm90ZWJvb2svZGVtb3MvZGVtbzEuanNvbg\" target\u003d\"_blank\"\u003eNYC Taxi Analytics\u003c/a\u003e | \u003ca href\u003d\"https://www.zeppelinhub.com/viewer/notebooks/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL1NuYXBweURhdGFJbmMvemVwcGVsaW4taW50ZXJwcmV0ZXIvbm90ZXMvZXhhbXBsZXMvbm90ZWJvb2svZGVtb3MvZGVtbzIuanNvbg\" target\u003d\"_blank\"\u003eAirline Data Analytics\u003c/a\u003e \u003c/h2\u003e\n\u003c/div\u003e\n\u003cp\u003eThe visualization is based on \u003ca href\u003d\"https://zeppelin.apache.org/docs/0.6.1/index.html\"\u003eApache Zeppelin\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003ci\u003eNote: The two notebooks shown above are primarily focused on the Synopses Data Engine capabilities of  SnappyData. Platform database features like ultra-fast column and row store are not explored here. \u003c/i\u003e\u003c/p\u003e\n\n\"\"\")",
+      "dateUpdated": "Oct 19, 2016 10:22:46 AM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": false,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1475910023895_-1693171507",
+      "id": "20161008-070023_1577429155",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003ch2\u003eSnappyData iSight Demos\u003c/h2\u003e\n\n\u003cdiv style\u003d\"font-weight: bold;\"\u003e\n   \u003ch2\u003e\u003ca href\u003d\"https://www.zeppelinhub.com/viewer/notebooks/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL1NuYXBweURhdGFJbmMvemVwcGVsaW4taW50ZXJwcmV0ZXIvbm90ZXMvZXhhbXBsZXMvbm90ZWJvb2svZGVtb3MvZGVtbzEuanNvbg\" target\u003d\"_blank\"\u003eNYC Taxi Analytics\u003c/a\u003e | \u003ca href\u003d\"https://www.zeppelinhub.com/viewer/notebooks/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL1NuYXBweURhdGFJbmMvemVwcGVsaW4taW50ZXJwcmV0ZXIvbm90ZXMvZXhhbXBsZXMvbm90ZWJvb2svZGVtb3MvZGVtbzIuanNvbg\" target\u003d\"_blank\"\u003eAirline Data Analytics\u003c/a\u003e \u003c/h2\u003e\n\u003c/div\u003e\n\u003cp\u003eThe visualization is based on \u003ca href\u003d\"https://zeppelin.apache.org/docs/0.6.1/index.html\"\u003eApache Zeppelin\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003ci\u003eNote: The two notebooks shown above are primarily focused on the Synopses Data Engine capabilities of  SnappyData. Platform database features like ultra-fast column and row store are not explored here. \u003c/i\u003e\u003c/p\u003e\n\n\n"
+      },
+      "dateCreated": "Oct 8, 2016 12:30:23 PM",
+      "dateStarted": "Oct 19, 2016 9:18:26 AM",
+      "dateFinished": "Oct 19, 2016 9:18:27 AM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%spark\nprintln(s\"\"\"%html\n\u003ch3\u003ePlease fill out this short \u003ca href\u003d\"https://www.surveymonkey.com/r/7BSB29L\" target\u003d\"_blank\"\u003esurvey\u003c/a\u003e and enter to win a iPad in time for Christmas.\u003c/h3\u003e\n\u003ch3\u003eYou can always share your thoughts/questions or just encourage us at \u003ca href\u003d\"http://www.snappydata.io/community\" target\u003d\"_blank\"\u003e http://www.snappydata.io/community \u003c/a\u003e\u003c/h3\u003e\n(You can use \u003ca href\u003d\"http://snappydata-slackin.herokuapp.com/\" target\u003d\"_blank\"\u003eslack\u003c/a\u003e,\u003ca href\u003d\"https://gitter.im/SnappyDataInc/snappydata\" target\u003d\"_blank\"\u003eGitter\u003c/a\u003e,\u003ca href\u003d\"http://stackoverflow.com/questions/tagged/snappydata\" target\u003d\"_blank\"\u003estackoverflow \u003c/a\u003e, or \u003ca href\u003d\"http://snappydata-slackin.herokuapp.com/\" target\u003d\"_blank\"\u003egoogle groups\u003c/a\u003e)\"\"\") \n",
+      "dateUpdated": "Oct 27, 2016 8:54:03 AM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": false,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1475494820264_-674451030",
+      "id": "20161003-114020_570010704",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003ch3\u003ePlease fill out this short \u003ca href\u003d\"https://www.surveymonkey.com/r/7BSB29L\" target\u003d\"_blank\"\u003esurvey\u003c/a\u003e and enter to win a iPad in time for Christmas.\u003c/h3\u003e\n\u003ch3\u003eYou can always share your thoughts/questions or just encourage us at \u003ca href\u003d\"http://www.snappydata.io/community\" target\u003d\"_blank\"\u003e http://www.snappydata.io/community \u003c/a\u003e\u003c/h3\u003e\n(You can use \u003ca href\u003d\"http://snappydata-slackin.herokuapp.com/\" target\u003d\"_blank\"\u003eslack\u003c/a\u003e,\u003ca href\u003d\"https://gitter.im/SnappyDataInc/snappydata\" target\u003d\"_blank\"\u003eGitter\u003c/a\u003e,\u003ca href\u003d\"http://stackoverflow.com/questions/tagged/snappydata\" target\u003d\"_blank\"\u003estackoverflow \u003c/a\u003e, or \u003ca href\u003d\"http://snappydata-slackin.herokuapp.com/\" target\u003d\"_blank\"\u003egoogle groups\u003c/a\u003e)\n"
+      },
+      "dateCreated": "Oct 3, 2016 5:10:20 AM",
+      "dateStarted": "Oct 27, 2016 8:51:10 AM",
+      "dateFinished": "Oct 27, 2016 8:51:11 AM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "",
+      "dateUpdated": "Oct 8, 2016 12:29:39 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1475909967700_-340287105",
+      "id": "20161008-065927_841618758",
+      "dateCreated": "Oct 8, 2016 12:29:27 PM",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "Snappydata Tutorial",
+  "id": "snappydata",
+  "angularObjects": {
+    "2BXCM9S5J:existing_process": [],
+    "2BZAH4GUU:shared_process": []
+  },
+  "config": {
+    "looknfeel": "default"
+  },
+  "info": {}
+}
