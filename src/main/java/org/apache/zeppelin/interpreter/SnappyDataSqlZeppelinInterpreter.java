@@ -74,8 +74,10 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   private static final String EMPTY_STRING = "";
   private static final String SEMI_COLON = ";";
   SparkContext sc = null;
-  LoadingCache<String, SnappyContext> paragraphContextCache = null;
+ // LoadingCache<String, SnappyContext> paragraphContextCache = null;
 
+  BlockingQueue<SnappyContext> connectionQueue = new ArrayBlockingQueue<SnappyContext>(50);
+  Map<String,SnappyContext> paragraphConnectionMap = new HashMap<String,SnappyContext>();
 
   public SnappyDataSqlZeppelinInterpreter(Properties property) {
     super(property);
@@ -102,9 +104,18 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
     }
 
-    paragraphContextCache = CacheBuilder.newBuilder()
+    long end,start;
+    for(int i=0;i<50;i++) {
+      start = System.currentTimeMillis();
+      SnappyContext snc = new SnappyContext(sc);
+      end = System.currentTimeMillis();
+      logger.info("SJ: Time required to create connection"+(end-start));
+      snc.tables().collect();
+      connectionQueue.add(snc);
+    }
+
+/*    paragraphContextCache = CacheBuilder.newBuilder()
             .maximumSize(50)
-            .expireAfterAccess(10, TimeUnit.MINUTES)
             .build(
                     new CacheLoader<String, SnappyContext>() {
                       @Override
@@ -112,7 +123,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
                         return new SnappyContext(sc);
                       }
                     }
-            );
+            );*/
   }
 
   private String getJobGroup(InterpreterContext context) {
@@ -167,14 +178,30 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     String id = contextInterpreter.getParagraphId();
     SnappyContext snc = null;
     try {
-      snc = paragraphContextCache.get(id);
+      //snc = paragraphContextCache.get(id);
+      if(paragraphConnectionMap.containsKey(id)) {
+        snc = paragraphConnectionMap.get(id);
+      } else {
+        long end,start;
+        start = System.currentTimeMillis();
+        snc = connectionQueue.take();
+        end= System.currentTimeMillis();
+        logger.info("SJ: Time required to take connection from queue: "+(end-start));
+        paragraphConnectionMap.put(id,snc);
+      }
+      logger.info("SJ: Not clearing the context: ");
+      //snc.snappySession().clear();
+
       if (null != getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS)) {
         snc.setConf(Constants.SPARK_SQL_SHUFFLE_PARTITIONS,
                 getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS));
       }
-    } catch (ExecutionException e) {
+    } /*catch (ExecutionException e) {
       logger.error("Error initializing SnappyContext");
       e.printStackTrace();
+    }*/ catch (InterruptedException interruptedException) {
+      logger.error("Error initializing SnappyContext");
+      interruptedException.printStackTrace();
     }
 
     cmd = cmd.trim();
@@ -282,6 +309,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
       long endTime = System.currentTimeMillis();
 
+      logger.info("SJ: Time required to execute query:  "+ sql +" is :   "+(endTime-startTime));
       data = data.trim();
       if (null != data && data != EMPTY_STRING && data.split("\n").length>1) {
         msg.append(data);
@@ -311,6 +339,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
 
 
+      //connectionQueue.offer(snc);
       return new InterpreterResult(InterpreterResult.Code.SUCCESS, msg.toString());
 
     } catch (Exception e) {
@@ -320,10 +349,12 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
         stringBuilder.append(e.getMessage()).append("\n");
         stringBuilder.append(e.getClass().toString()).append("\n");
         stringBuilder.append(StringUtils.join(e.getStackTrace(), "\n"));
+        //connectionQueue.offer(snc);
         return new InterpreterResult(InterpreterResult.Code.ERROR, stringBuilder.toString());
       } else {
         paragraphStateMap.remove(paragraphId);
         // Don't show error in case of cancel
+        //connectionQueue.offer(snc);
         return new InterpreterResult(InterpreterResult.Code.KEEP_PREVIOUS_RESULT, EMPTY_STRING);
       }
     }
