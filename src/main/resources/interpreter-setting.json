@@ -27,6 +27,12 @@
         "propertyName": "spark.app.name",
         "defaultValue": "Zeppelin",
         "description": "The name of spark application."
+      },
+      "zeppelin.dep.localrepo": {
+        "envName": "ZEPPELIN_DEP_LOCALREPO",
+        "propertyName": null,
+        "defaultValue": "local-repo",
+        "description": "local repository for dependency loader"
       }
     }
   },
