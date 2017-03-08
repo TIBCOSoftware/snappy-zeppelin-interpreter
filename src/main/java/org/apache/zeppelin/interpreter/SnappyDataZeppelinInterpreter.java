@@ -72,9 +72,9 @@ import org.apache.zeppelin.interpreter.InterpreterResult.Code;
 import org.apache.zeppelin.interpreter.InterpreterUtils;
 import org.apache.zeppelin.interpreter.WrappedInterpreter;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
+import org.apache.zeppelin.interpreter.util.InterpreterOutputStream;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
-import org.apache.zeppelin.spark.SparkOutputStream;
 import org.apache.zeppelin.spark.SparkVersion;
 import org.apache.zeppelin.spark.ZeppelinContext;
 import org.apache.zeppelin.spark.dep.SparkDependencyResolver;
@@ -126,8 +126,9 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private static JobProgressListener sparkListener;
   private static Integer sharedInterpreterLock = new Integer(0);
 
-  private SparkOutputStream out;
+  private InterpreterOutputStream out;
   private SparkDependencyResolver dep;
+  private static InterpreterHookRegistry hooks;
 
   /**
    * completer - org.apache.spark.repl.SparkJLineCompletion (scala 2.10)
@@ -141,7 +142,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
   public SnappyDataZeppelinInterpreter(Properties property) {
     super(property);
-    out = new SparkOutputStream(logger);
+    out = new InterpreterOutputStream(logger);
   }
 
   public SnappyDataZeppelinInterpreter(Properties property, SparkContext sc) {
@@ -494,7 +495,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
       dep = getDependencyResolver();
 
-      z = new ZeppelinContext(sc, snc, null, dep,
+      hooks = getInterpreterGroup().getInterpreterHookRegistry();
+      z = new ZeppelinContext(sc, snc, null, dep, hooks,
               Integer.parseInt(getProperty("zeppelin.spark.maxResult")));
 
       interpret("@transient val _binder = new java.util.HashMap[String, Object]()");

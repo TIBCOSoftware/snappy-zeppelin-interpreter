@@ -104,12 +104,11 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
     }
 
-    long end,start;
+   // long end,start;
     for(int i=0;i<50;i++) {
-      start = System.currentTimeMillis();
+      //start = System.currentTimeMillis();
       SnappyContext snc = new SnappyContext(sc);
-      end = System.currentTimeMillis();
-      logger.info("SJ: Time required to create connection"+(end-start));
+      //end = System.currentTimeMillis();
       snc.tables().collect();
       connectionQueue.add(snc);
     }
@@ -186,10 +185,8 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
         start = System.currentTimeMillis();
         snc = connectionQueue.take();
         end= System.currentTimeMillis();
-        logger.info("SJ: Time required to take connection from queue: "+(end-start));
         paragraphConnectionMap.put(id,snc);
       }
-      logger.info("SJ: Not clearing the context: ");
       //snc.snappySession().clear();
 
       if (null != getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS)) {
@@ -309,12 +306,11 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
       long endTime = System.currentTimeMillis();
 
-      logger.info("SJ: Time required to execute query:  "+ sql +" is :   "+(endTime-startTime));
       data = data.trim();
       if (null != data && data != EMPTY_STRING && data.split("\n").length>1) {
         msg.append(data);
         msg.append(NEWLINE);
-
+        msg.append("<!--TABLE_COMMENT-->");
 
         if (isApproxQuery) {
           paragraphStateMap.get(paragraphId).setTimeRequiredForApproxQuery(endTime - startTime);

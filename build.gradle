@@ -26,10 +26,10 @@ ext {
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
-    snappySparkVersion = '2.0.1-3'
-    snappyDataVersion = '0.6.1'
+    snappySparkVersion = '2.0.3-2'
+    snappyDataVersion = '0.7'
     gemfireVersion = "1.5.2"
-    zeppelinVersion = '0.6.1'
+    zeppelinVersion = '0.7.0'
 }
 
 configurations {
