@@ -112,17 +112,6 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       snc.tables().collect();
       connectionQueue.add(snc);
     }
-
-/*    paragraphContextCache = CacheBuilder.newBuilder()
-            .maximumSize(50)
-            .build(
-                    new CacheLoader<String, SnappyContext>() {
-                      @Override
-                      public SnappyContext load(String paragraphId) throws Exception {
-                        return new SnappyContext(sc);
-                      }
-                    }
-            );*/
   }
 
   private String getJobGroup(InterpreterContext context) {
@@ -178,25 +167,21 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     SnappyContext snc = null;
     try {
       //snc = paragraphContextCache.get(id);
-      if(paragraphConnectionMap.containsKey(id)) {
+      if (paragraphConnectionMap.containsKey(id)) {
         snc = paragraphConnectionMap.get(id);
       } else {
-        long end,start;
-        start = System.currentTimeMillis();
-        snc = connectionQueue.take();
-        end= System.currentTimeMillis();
-        paragraphConnectionMap.put(id,snc);
+        if (connectionQueue.isEmpty()) {
+          snc = new SnappyContext(sc);
+        } else {
+          snc = connectionQueue.take();
+        }
+        paragraphConnectionMap.put(id, snc);
       }
-      //snc.snappySession().clear();
-
       if (null != getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS)) {
         snc.setConf(Constants.SPARK_SQL_SHUFFLE_PARTITIONS,
                 getProperty(Constants.SPARK_SQL_SHUFFLE_PARTITIONS));
       }
-    } /*catch (ExecutionException e) {
-      logger.error("Error initializing SnappyContext");
-      e.printStackTrace();
-    }*/ catch (InterruptedException interruptedException) {
+    } catch (InterruptedException interruptedException) {
       logger.error("Error initializing SnappyContext");
       interruptedException.printStackTrace();
     }
