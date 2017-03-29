@@ -42,7 +42,6 @@ import org.apache.spark.scheduler.DAGScheduler;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SnappyContext;
 import org.apache.spark.sql.SnappySession;
-import org.apache.zeppelin.jdbc.JDBCInterpreter;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.apache.zeppelin.spark.ZeppelinContext;

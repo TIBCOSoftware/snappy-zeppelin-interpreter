@@ -1,5 +1,5 @@
 group 'io.snappydata'
-version '0.7.0'
+version '0.7.1'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -44,7 +44,6 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
     compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
     provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
@@ -190,7 +189,6 @@ uploadArchives {
         testCompile group: 'junit', name: 'junit', version: '4.11'
         compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
         compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
-        compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
         compile "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
         compile "org.scala-lang:scala-library:" + scalaVersion
         compile 'org.scala-lang:scala-reflect:' + scalaVersion
