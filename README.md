@@ -16,7 +16,7 @@ In order to use zeppelin with SnappyData following are the steps that needs to b
 Once snappydata cluster is being set up you have to connect to snappydata interpreter from zeppelin server.Following are the steps used to connect to remotely executing snappydata interpreter from zeppelin server:
 1. Install snappydata interpreter in zeppelin by executing following command from zeppelin's bin directory
 `./install-interpreter.sh --name snappydata --artifact io.snappydata:snappydata-zeppelin:0.6` 
-2. Rename **zeppelin-site.xml.template** to **zeppelin-site.xml**
+2. In Zeppelin's conf directory, rename **zeppelin-site.xml.template** to **zeppelin-site.xml**
 3. Add interpreter class names (**org.apache.zeppelin.interpreter.SnappyDataZeppelinInterpreter,org.apache.zeppelin.interpreter.SnappyDataSqlZeppelinInterpreter**) into **zeppelin.interpreters** property in configuration **zeppeline-site.xml**
 4. Restart zeppelin server
 5. Login to the zeppelin UI and browse for interpreter settings
