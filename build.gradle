@@ -1,5 +1,5 @@
 group 'io.snappydata'
-version '0.6.1'
+version '0.7.0'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -26,10 +26,10 @@ ext {
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
-    snappySparkVersion = '2.0.1-3'
-    snappyDataVersion = '0.6.1'
-    gemfireVersion = "1.5.2"
-    zeppelinVersion = '0.6.1'
+    snappySparkVersion = '2.0.2.3'
+    snappyDataVersion = '0.8'
+    gemfireVersion = "1.5.4"
+    zeppelinVersion = '0.7.0'
 }
 
 configurations {
