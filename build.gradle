@@ -73,6 +73,7 @@ dependencies {
       exclude(group: 'com.amazonaws', module: 'aws-java-sdk')
     }
     compile(group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4') {
+      // exclude joda-time already in spark-jobserver
       exclude(group: 'joda-time', module: 'joda-time')
     }
 
