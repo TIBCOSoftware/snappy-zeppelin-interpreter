@@ -1,9 +1,29 @@
+/*
+ * Copyright (c) 2017 SnappyData, Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you
+ * may not use this file except in compliance with the License. You
+ * may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License. See accompanying
+ * LICENSE file.
+ */
+
+plugins {
+  id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
 group 'io.snappydata'
-version '0.7.2'
+version '0.7.3'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
-apply plugin: 'maven-publish'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'distribution'
@@ -23,14 +43,18 @@ gradle.taskGraph.whenReady( { graph ->
     }
 })
 
+buildDir = 'build-artifacts'
 ext {
+    vendorName = 'SnappyData, Inc.'
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
     snappySparkVersion = '2.1.1.1'
     snappyDataVersion = '1.0.0'
     gemfireVersion = "1.6.0"
-    zeppelinVersion = '0.7.2'
+    zeppelinVersion = '0.7.3'
+
+    createdBy = System.getProperty('user.name')
 }
 
 configurations {
@@ -42,12 +66,17 @@ configurations.archives.with {
     artifacts.remove artifacts.find { it.archiveTask.is distZip}
 }
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
+    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
-    compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
+    compile(group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3') {
+      exclude(group: 'com.amazonaws', module: 'aws-java-sdk')
+    }
+    compile(group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4') {
+      // exclude joda-time already in spark-jobserver
+      exclude(group: 'joda-time', module: 'joda-time')
+    }
+
     provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
     provided "org.scala-lang:scala-library:" + scalaVersion
     provided 'org.scala-lang:scala-reflect:' + scalaVersion
@@ -55,23 +84,58 @@ dependencies {
     provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
     provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
     provided "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
-    //provided "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
-    compile "io.snappydata:gemfire-core:" + gemfireVersion
+
+    testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-jar {
-    zip64 = true
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn configurations.runtime
-    from {
-        (configurations.runtime - configurations.provided).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
+task product(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+  zip64 = true
+  baseName = "${rootProject.name}_${scalaBinaryVersion}"
+  classifier = ''
+
+  from { (project.configurations.runtime - project.configurations.provided).collect { it.isDirectory() ? '' : it.getPath() } }
+  from project.sourceSets.main.output
+
+  // avoid conflict with the version in SnappyData
+  relocate 'org.apache.thrift', 'zeppelin.org.apache.thrift'
+  // avoid conflict with the version in Spark
+  relocate 'com.google.common', 'zeppelin.com.google.common'
+
+  mergeServiceFiles()
+  exclude 'META-INF/*.SF'
+  exclude 'META-INF/*.DSA'
+  exclude 'META-INF/*.RSA'
+
+  // additional excludes from "shaded" zeppelin-spark that are already in SnappyData
+  exclude 'com/google/gson/**'
+  exclude 'org/apache/commons/codec/**'
+  exclude 'META-INF/maven/commons-codec/**'
+  exclude 'org/apache/commons/httpclient/**'
+  exclude 'org/apache/commons/io/**'
+  exclude 'META-INF/maven/commons-io/**'
+  exclude 'org/apache/commons/logging/**'
+  exclude 'META-INF/maven/commons-logging/**'
+  exclude 'org/apache/commons/pool2/**'
+  exclude 'META-INF/maven/org.apache.commons/commons-pool2/**'
+  exclude 'org/apache/http/**'
+  exclude 'META-INF/maven/org.apache.httpcomponents/**'
+  exclude 'org/apache/log4j/**'
+  exclude 'META-INF/maven/log4j/**'
+  exclude 'org/slf4j/**'
+  exclude 'META-INF/maven/org.slf4j/**'
+
+  if (rootProject.hasProperty('enablePublish')) {
+    createdBy = 'SnappyData Build Team'
+  }
+  manifest {
+    attributes(
+      'Manifest-Version'  : '1.0',
+      'Created-By'        : createdBy,
+      'Title'             : "snappydata-zeppelin_${scalaBinaryVersion}",
+      'Version'           : version,
+      'Vendor'            : vendorName
+    )
+  }
 }
 
 task packageSources(type: Jar, dependsOn: classes) {
@@ -107,36 +171,6 @@ distTar {
     dependsOn 'jar'
     classifier 'bin'
 }
-
-
-
-/*
-//Used to generate and load maven artifacts
-publishing {
-    publications {
-        interpreter(MavenPublication) {
-            groupId 'org.apache.zeppelin'
-            artifactId 'snappydata-zeppelin-interpreter'
-            version version
-
-           // artifact generateSnappydataZeppelinInterpreterJar
-        }
-    }
-    repositories {
-        maven {
-
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-
-            credentials {
-                username ""
-                password ""
-            }
-        }
-    }
-}
-*/
-
-
 
 uploadArchives {
     if (rootProject.hasProperty('enablePublish')) {
@@ -186,24 +220,26 @@ uploadArchives {
         }
     }
 
-    //Dependencies for pom generation
+    // Dependencies for pom generation
+    /*
     dependencies {
-        testCompile group: 'junit', name: 'junit', version: '4.11'
         compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
-        compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_2.11', version: zeppelinVersion
+        compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
         compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
+        compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
+        compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
+
         compile "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
         compile "org.scala-lang:scala-library:" + scalaVersion
         compile 'org.scala-lang:scala-reflect:' + scalaVersion
         compile 'org.scala-lang:scala-compiler:' + scalaVersion
         compile "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
         compile "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
-        compile "io.snappydata:gemfire-core:" + gemfireVersion
-        compile group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3'
-        compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4'
         compile "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
-       //compile "io.snappydata:snappydata-cluster_" + scalaBinaryVersion + ":" + snappyDataVersion
+
+        testCompile group: 'junit', name: 'junit', version: '4.11'
     }
+    */
 }
 
 task publishLocal {

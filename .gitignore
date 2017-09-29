@@ -1,19 +1,16 @@
-*.class
-aqp
-
 # sbt specific
 .cache/
 .history
 .lib/
 dist/*
-       build-artifacts/
-       lib_managed/
-       src_managed/
-       project/boot/
-       project/plugins/project/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
 build/
 # gradle specific
 .gradle/
+build-artifacts/
 
 # Scala-IDE specific
 .scala_dependencies
