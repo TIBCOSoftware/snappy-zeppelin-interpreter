@@ -69,13 +69,6 @@ dependencies {
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
-    compile(group: 'org.apache.hadoop', name: 'hadoop-aws', version: '2.7.3') {
-      exclude(group: 'com.amazonaws', module: 'aws-java-sdk')
-    }
-    compile(group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.7.4') {
-      // exclude joda-time already in spark-jobserver
-      exclude(group: 'joda-time', module: 'joda-time')
-    }
 
     provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
     provided "org.scala-lang:scala-library:" + scalaVersion
