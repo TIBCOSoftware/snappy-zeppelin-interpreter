@@ -23,4 +23,8 @@ public class Constants {
   public static final String FS_S3A_IMPL = "fs.s3a.impl";
   public static final String SPARK_SQL_SHUFFLE_PARTITIONS = "spark.sql.shuffle.partitions";
   public static final String FS_S3A_CONNECTION_MAXIMUM = "fs.s3a.connection.maximum";
+  public static final String DEFAULT_USER_KEY = "default.user";
+  public static final String DEFAULT_USER_PASSWORD = "default.password";
+  public static final String USER_KEY = "user";
+  public static final String USER_PASSWORD = "password";
 }

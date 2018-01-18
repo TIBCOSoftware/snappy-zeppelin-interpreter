@@ -225,6 +225,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   public SnappyContext getSnappyContext() {
     synchronized (sharedInterpreterLock) {
       SnappyContext snc = new SnappyContext(getSparkContext());
+      if (null != getProperty(Constants.DEFAULT_USER_KEY) ) {
+        snc.setConf(Constants.USER_KEY, getProperty(Constants.DEFAULT_USER_KEY));
+        if (null != getProperty(Constants.DEFAULT_USER_PASSWORD) ) {
+          snc.setConf(Constants.USER_PASSWORD, getProperty(Constants.DEFAULT_USER_PASSWORD));
+        }
+      }
       return snc;
     }
   }
