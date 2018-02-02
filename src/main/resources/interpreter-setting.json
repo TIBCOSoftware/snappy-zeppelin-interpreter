@@ -62,7 +62,7 @@
       "default.driver": {
         "envName": null,
         "propertyName": "default.driver",
-        "defaultValue": "com.pivotal.gemfirexd.jdbc.ClientDriver",
+        "defaultValue": "io.snappydata.jdbc.ClientDriver",
         "description": "JDBC Driver Name"
       },
       "common.max_count": {

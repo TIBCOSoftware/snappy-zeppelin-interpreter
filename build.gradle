@@ -57,10 +57,6 @@ ext {
     createdBy = System.getProperty('user.name')
 }
 
-configurations {
-    provided
-    compile.extendsFrom provided
-}
 configurations.archives.with {
     artifacts.remove artifacts.find { it.archiveTask.is distTar}
     artifacts.remove artifacts.find { it.archiveTask.is distZip}
@@ -70,13 +66,13 @@ dependencies {
     compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
 
-    provided "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
-    provided "org.scala-lang:scala-library:" + scalaVersion
-    provided 'org.scala-lang:scala-reflect:' + scalaVersion
-    provided 'org.scala-lang:scala-compiler:' + scalaVersion
-    provided "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
-    provided "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
-    provided "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
+    compileOnly "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
+    compileOnly "org.scala-lang:scala-library:" + scalaVersion
+    compileOnly 'org.scala-lang:scala-reflect:' + scalaVersion
+    compileOnly 'org.scala-lang:scala-compiler:' + scalaVersion
+    compileOnly "io.snappydata:snappy-spark-repl_" + scalaBinaryVersion + ":" + snappySparkVersion
+    compileOnly "io.snappydata:snappy-spark-core_" + scalaBinaryVersion + ":" + snappySparkVersion
+    compileOnly "io.snappydata:snappy-spark-catalyst_" + scalaBinaryVersion + ":" + snappySparkVersion
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
@@ -86,8 +82,7 @@ task product(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
   baseName = "${rootProject.name}_${scalaBinaryVersion}"
   classifier = ''
 
-  from { (project.configurations.runtime - project.configurations.provided).collect { it.isDirectory() ? '' : it.getPath() } }
-  from project.sourceSets.main.output
+  from project.configurations.runtime, project.sourceSets.main.output
 
   // avoid conflict with the version in SnappyData
   relocate 'org.apache.thrift', 'zeppelin.org.apache.thrift'
