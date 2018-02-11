@@ -82,7 +82,8 @@ task product(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
   baseName = "${rootProject.name}_${scalaBinaryVersion}"
   classifier = ''
 
-  from project.configurations.runtime, project.sourceSets.main.output
+  from (project.configurations.runtime - project.configurations.compileOnly)
+  from project.sourceSets.main.output
 
   // avoid conflict with the version in SnappyData
   relocate 'org.apache.thrift', 'zeppelin.org.apache.thrift'
