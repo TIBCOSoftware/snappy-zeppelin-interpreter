@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 SnappyData, Inc. All rights reserved.
+ * Copyright (c) 2018 SnappyData, Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you
  * may not use this file except in compliance with the License. You
@@ -49,9 +49,9 @@ ext {
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
-    snappySparkVersion = '2.1.1.1'
-    snappyDataVersion = '1.0.0'
-    gemfireVersion = "1.6.0"
+    snappySparkVersion = '2.1.1.2'
+    snappyDataVersion = '1.0.1'
+    gemfireVersion = "1.6.1"
     zeppelinVersion = '0.7.3'
 
     createdBy = System.getProperty('user.name')
