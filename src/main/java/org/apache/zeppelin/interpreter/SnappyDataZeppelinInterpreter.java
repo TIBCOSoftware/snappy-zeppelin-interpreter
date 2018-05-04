@@ -63,6 +63,7 @@ import org.apache.spark.scheduler.DAGScheduler;
 import org.apache.spark.scheduler.Pool;
 import org.apache.spark.sql.SnappyContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.collection.ToolsCallbackInit;
 import org.apache.spark.ui.jobs.JobProgressListener;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -130,6 +131,13 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private SparkDependencyResolver dep;
   private static InterpreterHookRegistry hooks;
 
+  private static final URLClassLoader snappyGlobalLoader =
+    ToolsCallbackInit.toolsCallback() != null ?
+    ToolsCallbackInit.toolsCallback().getLeadClassLoader() : null;
+
+  private volatile static Object[] addedURLS = null;
+
+  private volatile URLClassLoader contextLoader = null;
   /**
    * completer - org.apache.spark.repl.SparkJLineCompletion (scala 2.10)
    */
@@ -725,93 +733,119 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     }
   }
 
+  private void addDeployedJars() {
+    if (snappyGlobalLoader != null) {
+      URL[] allUrls = snappyGlobalLoader.getURLs();
+      if (addedURLS == null || (addedURLS.length != allUrls.length)) {
+        List<URL> added = new ArrayList<>();
+        for (URL url : allUrls) {
+          try {
+            sc.addJar(url.getFile());
+            added.add(url);
+          } catch (Throwable t) {
+            // ignore may be previously added
+          }
+        }
+        addedURLS = added.toArray();
+      }
+    }
+  }
+
   public InterpreterResult interpretInput(String[] lines, InterpreterContext context) {
     SparkEnv.set(env);
+    ClassLoader origClassLoader = Thread.currentThread().getContextClassLoader();
+    boolean ctxLoaderSet = false;
+    try {
+      addDeployedJars();
+      // add print("") to make sure not finishing with comment
+      // see https://github.com/NFLabs/zeppelin/issues/151
+      String[] linesToRun = new String[lines.length + 1];
+      for (int i = 0; i < lines.length; i++) {
+        linesToRun[i] = lines[i];
+      }
+      linesToRun[lines.length] = "print(\"\")";
 
-    // add print("") to make sure not finishing with comment
-    // see https://github.com/NFLabs/zeppelin/issues/151
-    String[] linesToRun = new String[lines.length + 1];
-    for (int i = 0; i < lines.length; i++) {
-      linesToRun[i] = lines[i];
-    }
-    linesToRun[lines.length] = "print(\"\")";
+      scala.Console.setOut(context.out);
+      out.setInterpreterOutput(context.out);
+      context.out.clear();
+      Code r = null;
+      String incomplete = "";
+      boolean inComment = false;
 
-    scala.Console.setOut(context.out);
-    out.setInterpreterOutput(context.out);
-    context.out.clear();
-    Code r = null;
-    String incomplete = "";
-    boolean inComment = false;
-
-    for (int l = 0; l < linesToRun.length; l++) {
-      String s = linesToRun[l];
-      // check if next line starts with "." (but not ".." or "./") it is treated as an invocation
-      if (l + 1 < linesToRun.length) {
-        String nextLine = linesToRun[l + 1].trim();
-        boolean continuation = false;
-        if (nextLine.isEmpty()
-                || nextLine.startsWith("//")         // skip empty line or comment
-                || nextLine.startsWith("}")
-                || nextLine.startsWith("object")) {  // include "} object" for Scala companion object
-          continuation = true;
-        } else if (!inComment && nextLine.startsWith("/*")) {
-          inComment = true;
-          continuation = true;
-        } else if (inComment && nextLine.lastIndexOf("*/") >= 0) {
-          inComment = false;
-          continuation = true;
-        } else if (nextLine.length() > 1
-                && nextLine.charAt(0) == '.'
-                && nextLine.charAt(1) != '.'     // ".."
-                && nextLine.charAt(1) != '/') {  // "./"
-          continuation = true;
-        } else if (inComment) {
-          continuation = true;
+      for (int l = 0; l < linesToRun.length; l++) {
+        String s = linesToRun[l];
+        // check if next line starts with "." (but not ".." or "./") it is treated as an invocation
+        if (l + 1 < linesToRun.length) {
+          String nextLine = linesToRun[l + 1].trim();
+          boolean continuation = false;
+          if (nextLine.isEmpty()
+                  || nextLine.startsWith("//")         // skip empty line or comment
+                  || nextLine.startsWith("}")
+                  || nextLine.startsWith("object")) {  // include "} object" for Scala companion object
+            continuation = true;
+          } else if (!inComment && nextLine.startsWith("/*")) {
+            inComment = true;
+            continuation = true;
+          } else if (inComment && nextLine.lastIndexOf("*/") >= 0) {
+            inComment = false;
+            continuation = true;
+          } else if (nextLine.length() > 1
+                  && nextLine.charAt(0) == '.'
+                  && nextLine.charAt(1) != '.'     // ".."
+                  && nextLine.charAt(1) != '/') {  // "./"
+            continuation = true;
+          } else if (inComment) {
+            continuation = true;
+          }
+          if (continuation) {
+            incomplete += s + "\n";
+            continue;
+          }
         }
-        if (continuation) {
+
+        scala.tools.nsc.interpreter.Results.Result res = null;
+        try {
+          res = interpret(incomplete + s);
+        } catch (Exception e) {
+          sc.clearJobGroup();
+          out.setInterpreterOutput(null);
+          logger.info("Interpreter exception", e);
+          return new InterpreterResult(Code.ERROR, InterpreterUtils.getMostRelevantMessage(e));
+        }
+
+        r = getResultCode(res);
+
+        if (r == Code.ERROR) {
+          sc.clearJobGroup();
+          out.setInterpreterOutput(null);
+          return new InterpreterResult(r, "");
+        } else if (r == Code.INCOMPLETE) {
           incomplete += s + "\n";
-          continue;
+        } else {
+          incomplete = "";
         }
       }
 
-      scala.tools.nsc.interpreter.Results.Result res = null;
-      try {
-        res = interpret(incomplete + s);
-      } catch (Exception e) {
-        sc.clearJobGroup();
-        out.setInterpreterOutput(null);
-        logger.info("Interpreter exception", e);
-        return new InterpreterResult(Code.ERROR, InterpreterUtils.getMostRelevantMessage(e));
+      // make sure code does not finish with comment
+      if (r == Code.INCOMPLETE) {
+        scala.tools.nsc.interpreter.Results.Result res = null;
+        res = interpret(incomplete + "\nprint(\"\")");
+        r = getResultCode(res);
       }
 
-      r = getResultCode(res);
-
-      if (r == Code.ERROR) {
+      if (r == Code.INCOMPLETE) {
         sc.clearJobGroup();
         out.setInterpreterOutput(null);
-        return new InterpreterResult(r, "");
-      } else if (r == Code.INCOMPLETE) {
-        incomplete += s + "\n";
+        return new InterpreterResult(r, "Incomplete expression");
       } else {
-        incomplete = "";
+        sc.clearJobGroup();
+        out.setInterpreterOutput(null);
+        return new InterpreterResult(Code.SUCCESS);
       }
-    }
-
-    // make sure code does not finish with comment
-    if (r == Code.INCOMPLETE) {
-      scala.tools.nsc.interpreter.Results.Result res = null;
-      res = interpret(incomplete + "\nprint(\"\")");
-      r = getResultCode(res);
-    }
-
-    if (r == Code.INCOMPLETE) {
-      sc.clearJobGroup();
-      out.setInterpreterOutput(null);
-      return new InterpreterResult(r, "Incomplete expression");
-    } else {
-      sc.clearJobGroup();
-      out.setInterpreterOutput(null);
-      return new InterpreterResult(Code.SUCCESS);
+    } finally {
+      if (ctxLoaderSet) {
+        Thread.currentThread().setContextClassLoader(origClassLoader);
+      }
     }
   }
 

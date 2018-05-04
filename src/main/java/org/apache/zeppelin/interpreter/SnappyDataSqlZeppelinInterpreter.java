@@ -35,6 +35,7 @@ package org.apache.zeppelin.interpreter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.snappydata.ToolsCallback;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkContext;
 import org.apache.spark.scheduler.ActiveJob;
@@ -42,6 +43,7 @@ import org.apache.spark.scheduler.DAGScheduler;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SnappyContext;
 import org.apache.spark.sql.SnappySession;
+import org.apache.spark.sql.collection.ToolsCallbackInit;
 import org.apache.zeppelin.jdbc.JDBCInterpreter;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
@@ -53,6 +55,7 @@ import scala.collection.mutable.HashSet;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -83,6 +86,11 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
     super(property);
   }
 
+  private static final URLClassLoader snappyGlobalLoader =
+    ToolsCallbackInit.toolsCallback() != null ?
+    ToolsCallbackInit.toolsCallback().getLeadClassLoader() : null;
+
+  private volatile URLClassLoader contextLoader = null;
 
   private int maxResult;
 
@@ -161,7 +169,6 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
 
     sc.setJobGroup(getJobGroup(contextInterpreter), "Zeppelin", false);
 
-    Thread.currentThread().setContextClassLoader(org.apache.spark.util.Utils.getSparkClassLoader());
     //SnappyContext snc = new SnappyContext(sc);
     String id = contextInterpreter.getParagraphId();
     SnappyContext snc = null;
@@ -186,56 +193,76 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       interruptedException.printStackTrace();
     }
 
-    cmd = cmd.trim();
-    if (cmd.startsWith(SHOW_APPROX_RESULTS_FIRST)) {
-      cmd = cmd.replaceFirst(SHOW_APPROX_RESULTS_FIRST, EMPTY_STRING);
+    ClassLoader origClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader sparkClassLoader = org.apache.spark.util.Utils.getSparkClassLoader();
 
-      /**
-       * As suggested by Jags and suyog
-       * This will allow user to execute multiple queries in same paragraph.
-       * But will return results of the last query.This is mainly done to
-       * allow user to set properties for JDBC connection
-       *
-       */
-      String queries[] = cmd.split(SEMI_COLON);
-      for (int i = 0; i < queries.length - 1; i++) {
-        InterpreterResult result = executeSql(snc, queries[i], contextInterpreter, false);
-        if (result.code().equals(InterpreterResult.Code.ERROR)) {
-          sc.clearJobGroup();
-          return result;
+    try {
+      if (snappyGlobalLoader != null) {
+        if (contextLoader == null || (contextLoader.getURLs() != null &&
+                snappyGlobalLoader.getURLs() != null) &&
+                (contextLoader.getURLs().length != snappyGlobalLoader.getURLs().length)) {
+          contextLoader = new URLClassLoader(snappyGlobalLoader.getURLs(), sparkClassLoader);
         }
       }
-      if (shouldExecuteApproxQuery(id)) {
+      if (contextLoader != null) {
+        Thread.currentThread().setContextClassLoader(contextLoader);
+      } else {
+        Thread.currentThread().setContextClassLoader(org.apache.spark.util.Utils.getSparkClassLoader());
+      }
 
-        for (InterpreterContextRunner r : contextInterpreter.getRunners()) {
-          if (id.equals(r.getParagraphId())) {
+      cmd = cmd.trim();
+      if (cmd.startsWith(SHOW_APPROX_RESULTS_FIRST)) {
+        cmd = cmd.replaceFirst(SHOW_APPROX_RESULTS_FIRST, EMPTY_STRING);
 
-            String query = queries[queries.length - 1] + " with error";
-            final InterpreterResult res = executeSql(snc, query, contextInterpreter, true);
-            exService.submit(new QueryExecutor(r));
+        /**
+         * As suggested by Jags and suyog
+         * This will allow user to execute multiple queries in same paragraph.
+         * But will return results of the last query.This is mainly done to
+         * allow user to set properties for JDBC connection
+         *
+         */
+        String queries[] = cmd.split(SEMI_COLON);
+        for (int i = 0; i < queries.length - 1; i++) {
+          InterpreterResult result = executeSql(snc, queries[i], contextInterpreter, false);
+          if (result.code().equals(InterpreterResult.Code.ERROR)) {
             sc.clearJobGroup();
-            return res;
+            return result;
           }
         }
+        if (shouldExecuteApproxQuery(id)) {
 
-      } else {
-        String query = queries[queries.length - 1];
-        sc.clearJobGroup();
-        return executeSql(snc, query, contextInterpreter, false);
-      }
-      return null;
-    } else {
-      String queries[] = cmd.split(SEMI_COLON);
-      for (int i = 0; i < queries.length - 1; i++) {
-        InterpreterResult result = executeSql(snc, queries[i], contextInterpreter, false);
-        if (result.code().equals(InterpreterResult.Code.ERROR)) {
+          for (InterpreterContextRunner r : contextInterpreter.getRunners()) {
+            if (id.equals(r.getParagraphId())) {
+
+              String query = queries[queries.length - 1] + " with error";
+              final InterpreterResult res = executeSql(snc, query, contextInterpreter, true);
+              exService.submit(new QueryExecutor(r));
+              sc.clearJobGroup();
+              return res;
+            }
+          }
+
+        } else {
+          String query = queries[queries.length - 1];
           sc.clearJobGroup();
-          return result;
+          return executeSql(snc, query, contextInterpreter, false);
         }
-      }
-      sc.clearJobGroup();
-      return executeSql(snc, queries[queries.length - 1], contextInterpreter, false);
+        return null;
+      } else {
+        String queries[] = cmd.split(SEMI_COLON);
+        for (int i = 0; i < queries.length - 1; i++) {
+          InterpreterResult result = executeSql(snc, queries[i], contextInterpreter, false);
+          if (result.code().equals(InterpreterResult.Code.ERROR)) {
+            sc.clearJobGroup();
+            return result;
+          }
+        }
+        sc.clearJobGroup();
+        return executeSql(snc, queries[queries.length - 1], contextInterpreter, false);
 
+      }
+    } finally {
+      Thread.currentThread().setContextClassLoader(origClassLoader);
     }
 
   }
