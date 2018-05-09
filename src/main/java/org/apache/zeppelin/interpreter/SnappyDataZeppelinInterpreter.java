@@ -128,7 +128,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   private static Integer sharedInterpreterLock = new Integer(0);
 
   private InterpreterOutputStream out;
-  private SparkDependencyResolver dep;
+  private volatile SnappyDependencyResolver dep;
   private static InterpreterHookRegistry hooks;
 
   private static final URLClassLoader snappyGlobalLoader =
@@ -238,11 +238,13 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
 
-  public SparkDependencyResolver getDependencyResolver() {
+  public SnappyDependencyResolver getDependencyResolver() {
     if (dep == null) {
-      dep = new SparkDependencyResolver(
+      ClassLoader classLoader = (ClassLoader)ZeppelinIntpUtil.invokeMethod(intp, "classLoader");
+      classLoader = classLoader.getParent();
+      dep = new SnappyDependencyResolver(
               (Global) ZeppelinIntpUtil.invokeMethod(intp, "global"),
-              (ClassLoader) ZeppelinIntpUtil.invokeMethod(ZeppelinIntpUtil.invokeMethod(intp, "classLoader"), "getParent"),
+              classLoader,
               sc,
               getProperty("zeppelin.dep.localrepo"),
               getProperty("zeppelin.dep.additionalRemoteRepository"));
@@ -502,6 +504,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       snc = getSnappyContext();
 
       dep = getDependencyResolver();
+      addDeployedJars();
 
       hooks = getInterpreterGroup().getInterpreterHookRegistry();
       z = new ZeppelinContext(sc, snc, null, dep, hooks,
@@ -740,10 +743,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         List<URL> added = new ArrayList<>();
         for (URL url : allUrls) {
           try {
-            sc.addJar(url.getFile());
+            getDependencyResolver().load(url.getFile(), true);
             added.add(url);
           } catch (Throwable t) {
+            logger.error("KN: failure: " + t, t);
             // ignore may be previously added
+            // TODO: Fix proper handling
           }
         }
         addedURLS = added.toArray();
@@ -980,6 +985,9 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
   @Override
   public void close() {
+    this.dep = null;
+    addedURLS = null;
+
     ZeppelinIntpUtil.invokeMethod(intp, "close");
   }
 

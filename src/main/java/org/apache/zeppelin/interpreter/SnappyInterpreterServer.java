@@ -24,6 +24,8 @@ import org.apache.zeppelin.interpreter.remote.RemoteInterpreterServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Permission;
+
 /**
  *
  */
@@ -46,7 +48,10 @@ public class SnappyInterpreterServer extends RemoteInterpreterServer {
 
   @Override
   public void shutdown() throws TException {
-
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager != null && securityManager.getClass().getName().contains("NoExitSecurityManager")) {
+      super.shutdown();
+    }
   }
 
   /**
