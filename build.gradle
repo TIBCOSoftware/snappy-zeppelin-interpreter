@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'io.snappydata'
-version '0.7.3'
+version '0.7.3.1'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
