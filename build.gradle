@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'io.snappydata'
-version '0.7.3.3'
+version '0.7.3.4'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -64,7 +64,9 @@ configurations.archives.with {
 dependencies {
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion
+    compile(group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion) {
+      exclude(group: 'jline', module: 'jline')
+    }
 
     compileOnly "io.snappydata:snappydata-core_" + scalaBinaryVersion + ":" + snappyDataVersion
     compileOnly "org.scala-lang:scala-library:" + scalaVersion
