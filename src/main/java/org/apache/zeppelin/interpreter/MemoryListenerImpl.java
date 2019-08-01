@@ -26,11 +26,14 @@ public class MemoryListenerImpl implements ResourceListener<MemoryEvent> {
 
   @Override
   public void onEvent(MemoryEvent event) {
-
-    logger.warn("Critical Up memory event Occured");
-
     if (event.getState().isCritical()) {
+      logger.warn("Critical Up memory event occured");
       SnappyDataZeppelinInterpreter.cancelAllJobsAndPause();
+    } else if (event.getState().isNormal()) {
+      logger.info("Memory event is now normal");
+      SnappyDataZeppelinInterpreter.resume();
+    } else {
+      logger.info("Memory event state: " + event.getState() + " occured. Taking no action");
     }
   }
 }

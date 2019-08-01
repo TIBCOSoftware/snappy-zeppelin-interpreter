@@ -704,10 +704,13 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   public InterpreterResult interpret(String line, InterpreterContext context) {
 
     InterpreterResult result=null;
-    if (!pauseInterpreter) {
+    if (pauseInterpreter) {
+      result = new InterpreterResult(Code.INCOMPLETE,
+          "Memory threshold reached.Please restart interpreter to release memory");
+    } else {
       if (sparkVersion.isUnsupportedVersion()) {
         result = new InterpreterResult(Code.ERROR, "Spark " + sparkVersion.toString()
-                + " is not supported");
+            + " is not supported");
       }
 
       z.setInterpreterContext(context);
@@ -715,9 +718,6 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
         result = new InterpreterResult(Code.SUCCESS);
       }
       result = interpret(line.split("\n"), context);
-    } else {
-      result = new InterpreterResult(Code.INCOMPLETE,
-              "Memory threshold reached.Please restart interpreter to release memory");
     }
     /*
     Resetting the classloader due to this issue: https://issues.scala-lang.org/browse/SI-8521
@@ -1019,5 +1019,10 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     logger.info("Pausing interpreter and cancelling all Jobs.");
     pauseInterpreter = true;
     sc.cancelAllJobs();
+  }
+
+  public static void resume() {
+    logger.info("Resuming interpreter.");
+    pauseInterpreter = false;
   }
 }
