@@ -1022,7 +1022,9 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
   public static void resume() {
-    logger.info("Resuming interpreter.");
+    if (pauseInterpreter) {
+      logger.info("Resuming interpreter.");
+    }
     pauseInterpreter = false;
   }
 }
