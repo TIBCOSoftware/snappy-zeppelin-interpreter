@@ -1023,8 +1023,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
 
   public static void resume() {
     if (pauseInterpreter) {
-      logger.info("Resuming interpreter.");
+      logger.info("Memory event state no longer critical. Resuming interpreter.");
+      pauseInterpreter = false;
     }
-    pauseInterpreter = false;
   }
 }
