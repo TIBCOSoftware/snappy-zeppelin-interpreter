@@ -30,7 +30,6 @@ public class MemoryListenerImpl implements ResourceListener<MemoryEvent> {
       logger.warn("Critical Up memory event occured");
       SnappyDataZeppelinInterpreter.cancelAllJobsAndPause();
     } else {
-      logger.info("Memory event is now normal");
       SnappyDataZeppelinInterpreter.resume();
     }
   }
