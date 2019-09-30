@@ -27,6 +27,7 @@ apply plugin: 'wrapper'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'distribution'
+apply plugin: 'scala'
 
 
 repositories {
