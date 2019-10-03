@@ -5,7 +5,8 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.{SnappySession, SparkSession}
 import scala.collection.mutable.{ListBuffer, Map}
 import org.apache.spark.sql._
-
+import org.apache.spark.SparkContext
+import io.snappydata.SnappyTableStatsProviderService
 
 object QueryBuilder {
 
@@ -32,16 +33,13 @@ object QueryBuilder {
      }
   }
 
-/*  def getPathFromParams(params : scala.collection.mutable.Map[String,String]) = {
-    case `hdfs` => ???
-    case `aws` => ???
-    case `gcs` => ???
-    case `adls` => ???
-    case _ => ???
-  }*/
-
   // File formats
   lazy val csv = "CSV"
+  lazy val csv_delimiter = "delimiter"
+  lazy val csv_encoding = "encoding"
+  lazy val csv_mode = "mode"
+  lazy val csv_header = "header"
+  lazy val csv_inferSchema = "inferSchema"
   lazy val prq = "Parquet"
   lazy val json = "JSON"
   lazy val orc = "ORC"
@@ -51,13 +49,14 @@ object QueryBuilder {
 
   // Data sources and parameters
   lazy val hdfs = "HDFS"
-  lazy val hdfs_namenode = "namenode"
+  val hdfs_namenode = "namenode"
   lazy val hdfs_path = "path"
 
   lazy val aws = "AWS"
   lazy val aws_id = "id"
   lazy val aws_secret = "secret"
   lazy val aws_location = "location"
+  lazy val aws_accessor = "s3a"
 
   lazy val lfs = "LFS"
   lazy val lfs_path = "path"
@@ -67,25 +66,59 @@ object QueryBuilder {
   lazy val gcs_keyPath = "keypath"
   lazy val gcs_bucket = "bucket"
   lazy val gcs_path = "path"
+  lazy val gcs_accessor = "gs"
 
   lazy val adls = "ADLS"
   lazy val adls_storage= "storageAccount"
   lazy val adls_key = "key"
   lazy val adls_container = "container"
   lazy val adls_filepath = "filepath"
-
+  lazy val adls_accessor = "wasb"
+  lazy val adls_domain = ".blob.core.windows.net"
 
   private lazy val fileFormats = List((csv, csv),(prq,prq),(json,json),(orc,orc),(avro,avro),(xml,xml),(txt,txt))
   private lazy val booleanOpts = List(("true", "true"), ("false", "false"))
   private lazy val sources = List((hdfs, "Hadoop File System"),(aws, "Amazon S3"),(lfs, "Local File System"),
                         (gcs, "Google Cloud Storage"),(adls, "Microsoft Azure Store"))
 
+  private val dlSlash = "/"
+  private val dlColon = ":"
+  private val dlColonSlash = dlColon + dlSlash + dlSlash
+  private val dlAtRate = "@"
+
+  def getPathFromParams(params : scala.collection.mutable.Map[String,String], ds : String) = ds match {
+    case `hdfs` => hdfs + dlColonSlash + params(hdfs_namenode) + dlSlash + params(hdfs_path)
+    case `aws` => aws_accessor + dlColonSlash + params(aws_id) + dlColon + params(aws_secret) + dlAtRate + params(aws_location)
+    case `gcs` => gcs_accessor + dlColonSlash + params(gcs_bucket) + dlSlash + params(gcs_path)
+    case `adls` => adls_accessor + dlColonSlash + params(adls_container) + dlAtRate + params(adls_storage) +
+         adls_domain + dlSlash + params(adls_filepath)
+    case `lfs` => params(lfs_path)
+    case _ => ""
+  }
+
+  def configureDataSourceEnvParams(sc : org.apache.spark.SparkContext,params : scala.collection.mutable.Map[String,String], ds : String) = ds match {
+    case `gcs` => {
+      sc.hadoopConfiguration.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+      sc.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+      sc.hadoopConfiguration.set("fs.gs.project.id", params(gcs_projID))
+      sc.hadoopConfiguration.set("google.cloud.auth.service.account.enable", "true")
+      sc.hadoopConfiguration.set("google.cloud.auth.service.account.json.keyfile",params(gcs_keyPath))
+    }
+    case `adls` => {
+      sc.hadoopConfiguration.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
+      sc.hadoopConfiguration.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb")
+      sc.hadoopConfiguration.set("fs.azure", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
+      sc.hadoopConfiguration.set("fs.azure.account.key." + params(adls_storage) + adls_domain, params(adls_key))
+    }
+    case _ =>
+  }
+
   def getFileFormatParams(f : String) = f match {
-    case `csv` => List(ParamText("encoding", s"Encoding $csv"),
-      ParamText("delimiter", s"Delimiter in $csv"),
-      ParamText("header", s"Header present in $csv", Some(booleanOpts)),
-      ParamText("inferSchema", s"Infer Schema from $csv" , Some(booleanOpts)),
-      ParamText("mode", s"Mode for bad records in $csv", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"))))
+    case `csv` => List(ParamText(csv_encoding, s"Encoding $csv"),
+      ParamText(csv_delimiter, s"Delimiter in $csv"),
+      ParamText(csv_header, s"Header present in $csv", Some(booleanOpts)),
+      ParamText(csv_inferSchema, s"Infer Schema from $csv" , Some(booleanOpts)),
+      ParamText(csv_mode, s"Mode for bad records in $csv", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"))))
     )
     case `txt` => List(ParamText("text_header","Header in Text file",Some(booleanOpts)),
                      ParamText("text_delimiter","Delimiter in Text File"))
@@ -116,21 +149,35 @@ object QueryBuilder {
 
   def getFileFormats = fileFormats
 
-  /*def connectSource(z: ZeppelinContext): Unit ={
-    import org.apache.hadoop.conf.Configuration._
-    import org.apache.hadoop.fs.FileSystem._
-    import org.apache.hadoop.fs.FileSystem
-    import org.apache.hadoop.fs.Path
-    import org.apache.hadoop.fs.permission.FsPermission
-    import org.apache.hadoop.util.Progressable
+  def createExternalTable(sc : org.apache.spark.SparkContext, z : ZeppelinContext, datasetName : String): Unit ={
+    val fParams = z.get("fileParams").asInstanceOf[scala.collection.mutable.Map[String,String]]
+    val dParams = z.get("dataSourceParams").asInstanceOf[scala.collection.mutable.Map[String,String]]
+    val path = z.get("path").asInstanceOf[String]
     val ds = z.get("dataSource").asInstanceOf[String]
-    val path = ds match {
-      case `hdfs` =>
-      case `aws` =>
-      case `adls` =>
-      case `gcs` =>
-      case `lfs` =>
-      case _ => ""
+    val ff = z.get("fileFormat").asInstanceOf[String]
+    val ss = new org.apache.spark.sql.SnappySession(sc)
+
+    val dropTable = ss.sql(s"""DROP TABLE IF EXISTS $datasetName""")
+    ff match {
+      case `csv` => {
+        val createTable = ss.sql(
+          s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $csv OPTIONS(path '$path',
+             |$csv_delimiter '${fParams(csv_delimiter)}',
+             |$csv_encoding '${fParams(csv_encoding)}',
+             |$csv_mode '${fParams(csv_mode)}',
+             |$csv_header '${fParams(csv_header)}',
+             |$csv_inferSchema '${fParams(csv_inferSchema)}') """.stripMargin)
+      }
+      case _ => val createTable = ss.sql(s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using csv OPTIONS(path '$path') """)
     }
-  }*/
+    val schemaTable = ss.table(s"$datasetName")
+    printHTML(List("Inferred from the external table"),"Schema")
+    schemaTable.printSchema
+    printHTML(List(schemaTable.count().toString),"Count")
+    z.show(schemaTable,10)
+  }
+
+  def getClusterStats(): Unit = {
+    SnappyTableStatsProviderService.getService
+  }
 }
