@@ -45,7 +45,10 @@ object QueryBuilder {
   lazy val orc = "ORC"
   lazy val avro = "Avro"
   lazy val xml = "XML"
+  lazy val xml_rowtag = "rowTag"
   lazy val txt = "Text"
+  lazy val txt_header = "text_header"
+  lazy val txt_delimiter = "text_delimiter"
 
   // Data sources and parameters
   lazy val hdfs = "HDFS"
@@ -120,9 +123,9 @@ object QueryBuilder {
       ParamText(csv_inferSchema, s"Infer Schema from $csv" , Some(booleanOpts)),
       ParamText(csv_mode, s"Mode for bad records in $csv", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"))))
     )
-    case `txt` => List(ParamText("text_header","Header in Text file",Some(booleanOpts)),
-                     ParamText("text_delimiter","Delimiter in Text File"))
-    case `xml` => List(ParamText("rowTag","Row Tag in XML file"))
+    case `txt` => List(ParamText(txt_header,"Header in Text file",Some(booleanOpts)),
+                     ParamText(txt_delimiter,"Delimiter in Text File"))
+    case `xml` => List(ParamText(xml_rowtag,"Row Tag in XML file"))
     case _ => List()
   }
 
@@ -158,26 +161,34 @@ object QueryBuilder {
     val ss = new org.apache.spark.sql.SnappySession(sc)
 
     val dropTable = ss.sql(s"""DROP TABLE IF EXISTS $datasetName""")
-    ff match {
-      case `csv` => {
-        val createTable = ss.sql(
-          s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $csv OPTIONS(path '$path',
-             |$csv_delimiter '${fParams(csv_delimiter)}',
-             |$csv_encoding '${fParams(csv_encoding)}',
-             |$csv_mode '${fParams(csv_mode)}',
-             |$csv_header '${fParams(csv_header)}',
-             |$csv_inferSchema '${fParams(csv_inferSchema)}') """.stripMargin)
-      }
-      case _ => val createTable = ss.sql(s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using csv OPTIONS(path '$path') """)
-    }
+    val options = s"""path '$path'""" + ( ff match {
+      case `csv` => s""",$csv_delimiter '${fParams(csv_delimiter)}'
+             |,$csv_encoding '${fParams(csv_encoding)}'
+             |,$csv_mode '${fParams(csv_mode)}'
+             |,$csv_header '${fParams(csv_header)}'
+             |,$csv_inferSchema '${fParams(csv_inferSchema)}'""".stripMargin
+      case `txt` => s""",$txt_header '${fParams(txt_header)}',$txt_delimiter '${fParams(txt_delimiter)}'"""
+      case `xml` => s""",$xml_rowtag '${fParams(xml_rowtag)}' """
+    })
+    val create_query = s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $ff OPTIONS($options) """
+    val createTable = ss.sql(create_query)
     val schemaTable = ss.table(s"$datasetName")
-    printHTML(List("Inferred from the external table"),"Schema")
+    println("Schema")
     schemaTable.printSchema
-    printHTML(List(schemaTable.count().toString),"Count")
+    printHTML (List(s"<b>$datasetName created successfully using following query"
+      ,s"""<i>$create_query""",s"<b>Row Count : ${schemaTable.count().toString}"),"Result")
     z.show(schemaTable,10)
   }
 
-  def getClusterStats(): Unit = {
-    SnappyTableStatsProviderService.getService
+  def renderDepsUI(ds: String,ff: String, z : ZeppelinContext) : scala.collection.mutable.Map[String, (String,String,String)] = {
+    val deps = getDependencyJarNames(ds) ::: getDependencyJarNames(ff)
+    val pMap = scala.collection.mutable.Map.empty[String, (String,String,String)]
+    deps.foreach(d => {
+      val name = z.input(s"Name (ex. MyPackage) for $d").asInstanceOf[String]
+      val coordinates = z.input(s"Coordinates (groupId:artifactId:version) for $d").asInstanceOf[String]
+      val path = z.input(s"Path (location reachable from LeadNode) for $d").asInstanceOf[String]
+      pMap += (d -> (name,coordinates,path))
+    })
+    pMap
   }
 }
