@@ -158,27 +158,44 @@ object QueryBuilder {
     val path = z.get("path").asInstanceOf[String]
     val ds = z.get("dataSource").asInstanceOf[String]
     val ff = z.get("fileFormat").asInstanceOf[String]
-    val ss = new org.apache.spark.sql.SnappySession(sc)
+    if(verifyParams(dParams,fParams)) {
+      val ss = new org.apache.spark.sql.SnappySession(sc)
 
-    val dropTable = ss.sql(s"""DROP TABLE IF EXISTS $datasetName""")
-    val options = s"""path '$path'""" + ( ff match {
-      case `csv` => s""",$csv_delimiter '${fParams(csv_delimiter)}'
-             |,$csv_encoding '${fParams(csv_encoding)}'
-             |,$csv_mode '${fParams(csv_mode)}'
-             |,$csv_header '${fParams(csv_header)}'
-             |,$csv_inferSchema '${fParams(csv_inferSchema)}'""".stripMargin
-      case `txt` => s""",$txt_header '${fParams(txt_header)}',$txt_delimiter '${fParams(txt_delimiter)}'"""
-      case `xml` => s""",$xml_rowtag '${fParams(xml_rowtag)}' """
-    })
-    val create_query = s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $ff OPTIONS($options) """
-    val createTable = ss.sql(create_query)
-    val schemaTable = ss.table(s"$datasetName")
-    println("Schema")
-    schemaTable.printSchema
-    printHTML (List(s"<b>$datasetName created successfully using following query"
-      ,s"""<i>$create_query""",s"<b>Row Count : ${schemaTable.count().toString}"),"Result")
-    z.show(schemaTable,10)
+      val dropTable = ss.sql(s"""DROP TABLE IF EXISTS $datasetName""")
+      val options =
+        s"""path '$path'""" + (ff match {
+          case `csv` => s""",$csv_delimiter '${fParams(csv_delimiter)}'
+                           |,$csv_encoding '${fParams(csv_encoding)}'
+                           |,$csv_mode '${fParams(csv_mode)}'
+                           |,$csv_header '${fParams(csv_header)}'
+                           |,$csv_inferSchema '${fParams(csv_inferSchema)}'""".stripMargin
+          case `txt` => s""",$txt_header '${fParams(txt_header)}',$txt_delimiter '${fParams(txt_delimiter)}'"""
+          case `xml` => s""",$xml_rowtag '${fParams(xml_rowtag)}' """
+        })
+      val create_query = s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $ff OPTIONS($options) """
+      val createTable = ss.sql(create_query)
+      val schemaTable = ss.table(s"$datasetName")
+      println("Schema")
+      schemaTable.printSchema
+      printHTML(List(s"<b>$datasetName created successfully using following query"
+        ,
+        s"""<i>$create_query""", s"<b>Row Count : ${schemaTable.count().toString}"), "Result")
+      z.show(schemaTable, 10)
+    }
   }
+
+  def verifyParams(dParams: scala.collection.mutable.Map[String,String], fParams : scala.collection.mutable.Map[String,String] ): Boolean ={
+    val incompleteDS = dParams.filter(_._2.length == 0)
+    val incompleteFF = fParams.filter(_._2.length == 0)
+    val verify = (incompleteDS.keys.size == 0 && incompleteFF.keys.size == 0)
+    if(!verify){
+      if(incompleteDS.keys.size != 0)
+        printHTML(incompleteDS.keys.toList,"Warning : Data Source parameter(s) left blank.")
+      if(incompleteFF.keys.size != 0)
+        printHTML(incompleteFF.keys.toList,"Warning : File Format parameter(s) left blank.")
+    }
+    verify
+ }
 
   def renderDepsUI(ds: String,ff: String, z : ZeppelinContext) : scala.collection.mutable.Map[String, (String,String,String)] = {
     val deps = getDependencyJarNames(ds) ::: getDependencyJarNames(ff)
