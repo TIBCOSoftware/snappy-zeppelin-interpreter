@@ -6,7 +6,6 @@ import org.apache.spark.sql.{SnappySession, SparkSession}
 import scala.collection.mutable.{ListBuffer, Map}
 import org.apache.spark.sql._
 import org.apache.spark.SparkContext
-import io.snappydata.SnappyTableStatsProviderService
 
 object QueryBuilder {
 
@@ -51,7 +50,7 @@ object QueryBuilder {
   lazy val txt_delimiter = "text_delimiter"
 
   // Data sources and parameters
-  lazy val hdfs = "HDFS"
+  lazy val hdfs = "hdfs"
   val hdfs_namenode = "namenode"
   lazy val hdfs_path = "path"
 
@@ -171,6 +170,7 @@ object QueryBuilder {
                            |,$csv_inferSchema '${fParams(csv_inferSchema)}'""".stripMargin
           case `txt` => s""",$txt_header '${fParams(txt_header)}',$txt_delimiter '${fParams(txt_delimiter)}'"""
           case `xml` => s""",$xml_rowtag '${fParams(xml_rowtag)}' """
+          case _ => ""
         })
       val create_query = s"""CREATE EXTERNAL TABLE IF NOT EXISTS $datasetName using $ff OPTIONS($options) """
       val createTable = ss.sql(create_query)
@@ -185,7 +185,7 @@ object QueryBuilder {
   }
 
   def verifyParams(dParams: scala.collection.mutable.Map[String,String], fParams : scala.collection.mutable.Map[String,String] ): Boolean ={
-    val incompleteDS = dParams.filter(_._2.length == 0)
+    val incompleteDS = dParams.filter(_._2.length == 0 )
     val incompleteFF = fParams.filter(_._2.length == 0)
     val verify = (incompleteDS.keys.size == 0 && incompleteFF.keys.size == 0)
     if(!verify){

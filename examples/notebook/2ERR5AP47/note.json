@@ -39,10 +39,49 @@
       "progressUpdateIntervalMs": 500
     },
     {
+      "title": "Prerequisites",
+      "text": "%snappydata\nprintln(s\"\"\"%html\n    \u003cul\u003e\n      \u003cb\u003e\u003ci\u003e\n      \u003cli\u003eEnsure the cluster is running using \u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003eEnsure you have the necessary access credentials/permissions for data access.\u003c/li\u003e\n      \u003cli\u003ePlease use the clear output button above to flush any information populated in previous runs of the notebook.\u003c/li\u003e\n      \u003c/b\u003e\u003c/i\u003e\u003c/font\u003e\n    \u003c/ul\u003e  \n\"\"\")",
+      "user": "anonymous",
+      "dateUpdated": "Oct 9, 2019 4:18:46 PM",
+      "config": {
+        "colWidth": 10.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/text",
+        "title": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "    \u003cul\u003e\n      \u003cb\u003e\u003ci\u003e\n      \u003cli\u003eEnsure the cluster is running using \u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003eEnsure you have the necessary access credentials/permissions for data access.\u003c/li\u003e\n      \u003cli\u003ePlease use the clear output button above to flush any information populated in previous runs of the notebook.\u003c/li\u003e\n      \u003c/b\u003e\u003c/i\u003e\u003c/font\u003e\n    \u003c/ul\u003e  \n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1570437276742_-1421668524",
+      "id": "20191007-140436_1406401757",
+      "dateCreated": "Oct 7, 2019 2:04:36 PM",
+      "dateStarted": "Oct 9, 2019 4:18:44 PM",
+      "dateFinished": "Oct 9, 2019 4:18:44 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
       "title": "Step 1 : Select file format of stored data.",
       "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    val fileFormat \u003d z.select(\"FileFormat\",getFileFormats.toSeq).asInstanceOf[String]\n    z.put(\"dataSource\",adls)\n    z.put(\"fileFormat\",fileFormat)\n    z.run(\"20191009-094709_1605039185\")\n}\n",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 9:51:13 AM",
+      "dateUpdated": "Oct 10, 2019 2:37:48 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,
@@ -60,9 +99,9 @@
         "forms": {}
       },
       "apps": [],
-      "jobName": "paragraph_1570437276742_-1421668524",
-      "id": "20191007-140436_1406401757",
-      "dateCreated": "Oct 7, 2019 2:04:36 PM",
+      "jobName": "paragraph_1570618105899_1261909786",
+      "id": "20191009-161825_1277285277",
+      "dateCreated": "Oct 9, 2019 4:18:25 PM",
       "status": "READY",
       "progressUpdateIntervalMs": 500
     },
@@ -124,9 +163,9 @@
     },
     {
       "title": "Step 4 : Register External Table in catalog",
-      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    \n    val datasetName \u003d z.input(\"Dataset name\").asInstanceOf[String]\n    if(datasetName.length \u003d\u003d 0 ){\n        printHTML(List(\"Please provide name of the dataset to create the extenal table.\"),\"Warning\")\n    }else{\n       createExternalTable(sc,z,datasetName)\n       z.put(\"datasetName\",datasetName)\n    }\n}\n",
+      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    \n    val datasetName \u003d z.input(\"Dataset name\").asInstanceOf[String]\n    if(datasetName.length \u003d\u003d 0 ){\n        printHTML(List(\"Please provide name of the dataset to create the extenal table.\"),\"Warning\")\n    }else{\n       createExternalTable(sc,z,datasetName)\n       //Clean all variables\n       z.remove(\"dataSource\")\n       z.remove(\"fileFormat\")\n       z.remove(\"dataSourceParams\")\n       z.remove(\"path\")\n       z.remove(\"fileParams\")\n    }\n}\n",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 9:51:13 AM",
+      "dateUpdated": "Oct 10, 2019 2:37:44 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,

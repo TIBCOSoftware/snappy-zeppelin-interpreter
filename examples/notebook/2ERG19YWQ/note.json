@@ -3,7 +3,7 @@
     {
       "text": "%angular\n\u003chtml\u003e\n\u003ch3\u003e Objective \u003c/h3\u003e\nRegister external data sets sourced from files hosted on \u003cb\u003eAmazon S3 Storage (AWS)\u003c/b\u003e.\n\u003ch3\u003e Utils \u003c/h3\u003e\n\u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"https://mvnrepository.com/\" target\u003d\"_blank\"\u003eMaven Repository\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"https://spark-packages.org/\" target\u003d\"_blank\"\u003eSpark-Packages.org\u003c/a\u003e\n\u003cbr\u003e\n\u003ch3\u003e Other Data Sources\u003c/h3\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2EQ7YNQRV\" target\u003d\"_blank\"\u003eLocal Files(LFS)\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ENZ8ZCSQ\" target\u003d\"_blank\"\u003eHadoop (HDFS)\u003c/a\u003e\n\u003cbr\u003e\n\u003cb\u003e\u003ci\u003eAmazon S3(AWS)\u003c/i\u003e\u003c/b\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ERHX1PHD\" target\u003d\"_blank\"\u003eGoogle Cloud(GCS)\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ERR5AP47\" target\u003d\"_blank\"\u003eMicrosoft Azure (ADLS)\u003c/a\u003e\n\n\u003ch3\u003e References \u003c/h3\u003e\n\u003ca href\u003d\"https://tibco-computedb.readthedocs.io/en/enterprise_docv1.1.1/?id\u003d0\" target\u003d\"_blank\"\u003eComputeDB Documentation\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/quickstart\" target\u003d\"_blank\"\u003eQuick Start Notebook\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/snappydata\" target\u003d\"_blank\"\u003eProduct Overview\u003c/a\u003e \n\u003cdiv ng-repeat\u003d\"n in [].constructor(70) track by $index\"\u003e\n    \u003cbr\u003e\n\u003c/div\u003e\n\u003c/html\u003e",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 10:02:31 AM",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
       "config": {
         "colWidth": 2.0,
         "enabled": true,
@@ -33,8 +33,50 @@
       "jobName": "paragraph_1570436968983_1003158606",
       "id": "20191007-135928_1520937451",
       "dateCreated": "Oct 7, 2019 1:59:28 PM",
-      "dateStarted": "Oct 9, 2019 9:35:03 AM",
-      "dateFinished": "Oct 9, 2019 9:35:03 AM",
+      "dateStarted": "Oct 9, 2019 3:51:59 PM",
+      "dateFinished": "Oct 9, 2019 3:51:59 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Prerequisites",
+      "text": "%snappydata\nprintln(s\"\"\"%html\n    \u003cul\u003e\n      \u003cb\u003e\u003ci\u003e\n      \u003cli\u003eEnsure the cluster is running using \u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003eEnsure you have the necessary access credentials/permissions for data access.\u003c/li\u003e\n      \u003cli\u003ePlease use the clear output button above to flush any information populated in previous runs of the notebook.\u003c/li\u003e\n      \u003c/b\u003e\u003c/i\u003e\u003c/font\u003e\n    \u003c/ul\u003e  \n\"\"\")",
+      "user": "anonymous",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
+      "config": {
+        "colWidth": 10.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/text",
+        "title": true,
+        "editorHide": true,
+        "runOnSelectionChange": true
+      },
+      "settings": {
+        "params": {
+          "FileFormat": "Text"
+        },
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "    \u003cul\u003e\n      \u003cb\u003e\u003ci\u003e\n      \u003cli\u003eEnsure the cluster is running using \u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003eEnsure you have the necessary access credentials/permissions for data access.\u003c/li\u003e\n      \u003cli\u003ePlease use the clear output button above to flush any information populated in previous runs of the notebook.\u003c/li\u003e\n      \u003c/b\u003e\u003c/i\u003e\u003c/font\u003e\n    \u003c/ul\u003e  \n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1570438152822_433601586",
+      "id": "20191007-141912_1968680104",
+      "dateCreated": "Oct 7, 2019 2:19:12 PM",
+      "dateStarted": "Oct 9, 2019 4:17:12 PM",
+      "dateFinished": "Oct 9, 2019 4:17:12 PM",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
@@ -42,7 +84,7 @@
       "title": "Step 1 : Select file format of stored data.",
       "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    val fileFormat \u003d z.select(\"FileFormat\",getFileFormats.toSeq).asInstanceOf[String]\n    z.put(\"dataSource\",aws)\n    z.put(\"fileFormat\",fileFormat)\n    z.run(\"20191009-093241_2140428587\")\n}",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 10:02:31 AM",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,
@@ -53,16 +95,19 @@
         },
         "editorMode": "ace/mode/text",
         "title": true,
-        "editorHide": true
+        "editorHide": true,
+        "runOnSelectionChange": true
       },
       "settings": {
-        "params": {},
+        "params": {
+          "FileFormat": "Text"
+        },
         "forms": {}
       },
       "apps": [],
-      "jobName": "paragraph_1570438152822_433601586",
-      "id": "20191007-141912_1968680104",
-      "dateCreated": "Oct 7, 2019 2:19:12 PM",
+      "jobName": "paragraph_1570618010004_-690476344",
+      "id": "20191009-161650_1126139988",
+      "dateCreated": "Oct 9, 2019 4:16:50 PM",
       "status": "READY",
       "progressUpdateIntervalMs": 500
     },
@@ -70,7 +115,7 @@
       "title": "Step 2 : Deploy Dependencies",
       "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    val dataSource \u003d z.get(\"dataSource\").asInstanceOf[String]\n    val fileFormat \u003d z.get(\"fileFormat\").asInstanceOf[String]\n    println(\"List of already deployed packages (on fresh installations this list will be empty.)\")\n    val ss \u003d new org.apache.spark.sql.SnappySession(sc)\n    ss.sql(\"list packages\").show(false)\n    \n    printHTML(getDependencyJarNames(dataSource), \"To be deployed from Maven Repository\")\n    printHTML(getDependencyJarNames(fileFormat), \"To be deployed from Spark-packages\")\n    val depsParams \u003d renderDepsUI(dataSource,fileFormat,z)\n    val incompleteDeps \u003d depsParams.filter(_._2.productIterator.map(_.asInstanceOf[String]).contains(\"\"))\n    if(incompleteDeps.keys.size !\u003d 0){\n        printHTML(incompleteDeps.keys.toList.map(x \u003d\u003e s\"\"\"\u003cfont color\u003dblue\u003e\u003ci\u003e$x\u003c/i\u003e\u003c/font\u003e\"\"\"),s\"\"\"Warning : Dependency jar parameter(s) left blank. Ignore if package is already installed on the system.\"\"\")\n        val t \u003d incompleteDeps.keys.toList\n    }else{ \n       depsParams.foreach((t) \u003d\u003e ss.sql(s\"\"\"deploy package ${t._2._1} \u0027${t._2._2}\u0027 path \u0027${t._2._3}\u0027\"\"\"))\n       z.run(\"20191009-093333_136112579\")\n    }\n}",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 10:02:31 AM",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,
@@ -86,19 +131,46 @@
       "settings": {
         "params": {},
         "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "List of already deployed packages (on fresh installations this list will be empty.)\n+-------------------------+----------------------------------------------------+---------+\n|alias                    |coordinate                                          |isPackage|\n+-------------------------+----------------------------------------------------+---------+\n|spark_deep_learning_0_3_0|databricks:spark-deep-learning:0.3.0-spark2.2-s_2.11|true     |\n|spark-avro               |com.databricks:spark-avro_2.11:4.0.0                |true     |\n+-------------------------+----------------------------------------------------+---------+\n\n"
+          },
+          {
+            "type": "HTML",
+            "data": "\u003cdiv\u003e\u003ch5\u003e\u003cspan style\u003d\"font-weight: bold;\"\u003e To be deployed from Maven Repository\u003c/h5\u003e \n"
+          },
+          {
+            "type": "HTML",
+            "data": "None\n"
+          },
+          {
+            "type": "HTML",
+            "data": "\u003cdiv\u003e\u003ch5\u003e\u003cspan style\u003d\"font-weight: bold;\"\u003e To be deployed from Spark-packages\u003c/h5\u003e \n"
+          },
+          {
+            "type": "HTML",
+            "data": "None\n"
+          }
+        ]
       },
       "apps": [],
       "jobName": "paragraph_1570593761003_708691994",
       "id": "20191009-093241_2140428587",
       "dateCreated": "Oct 9, 2019 9:32:41 AM",
-      "status": "READY",
+      "dateStarted": "Oct 9, 2019 3:53:40 PM",
+      "dateFinished": "Oct 9, 2019 3:53:41 PM",
+      "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "title": "Step 3 : Supply access credentials and file format parsing options",
-      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    \n    val dataSource \u003d z.get(\"dataSource\").asInstanceOf[String]\n    val fileFormat \u003d z.get(\"fileFormat\").asInstanceOf[String]\n    val dParams \u003d parseAndRender(getDataSourceParams(dataSource),z)\n    val fParams \u003d parseAndRender(getFileFormatParams(fileFormat),z)\n    configureDataSourceEnvParams(sc,dParams,dataSource)\n    if(verifyParams(dParams,fParams)) {\n        val path \u003d getPathFromParams(dParams,dataSource)\n        printHTML(List(path),\"Path based on provided variables\")\n        z.put(\"dataSourceParams\",dParams)\n        z.put(\"path\",path)\n        z.put(\"fileParams\",fParams)\n    }\n}",
+      "title": "Step 3 : Access credentials",
+      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    println(s\"\"\"%angular\n        \u003cform class\u003d\"form-inline\"\u003e\n        \u003clabel for\u003d$aws_id\u003eAWS Access ID\u003c/label\u003e\n        \u003cinput type\u003d\"password\" class\u003d\"form-control\" id\u003d\"$aws_id\" placeholder\u003d\"Access ID\" required minlenth\u003d\"1\" ng-model\u003d\"$aws_id\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003clabel for\u003d$aws_secret\u003eAWS Access Secret\u003c/label\u003e\n        \u003cinput type\u003d\"password\" class\u003d\"form-control\" id\u003d\"$aws_secret\" placeholder\u003d\"Access secret\" required minlenth\u003d\"1\" ng-model\u003d\"$aws_secret\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003clabel for\u003d$aws_location\u003eS3 Bucket Location\u003c/label\u003e\n        \u003cinput type\u003d\"text\" class\u003d\"form-control\" id\u003d\"$aws_location\" placeholder\u003d\"Bucket location\" required minlenth\u003d\"1\" ng-model\u003d\"$aws_location\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003cbutton type\u003d\"bind\" class\u003d\"btn btn-primary\" ng-click\u003d\"z.angularBind(\u0027$aws_id\u0027,$aws_id,\u002720191009-093333_136112579\u0027);z.angularBind(\u0027$aws_secret\u0027,$aws_secret,\u002720191009-093333_136112579\u0027);\n        z.angularBind(\u0027$aws_location\u0027,$aws_location,\u002720191009-093333_136112579\u0027)\"\u003eConfirm\u003c/button\u003e\n        \u003c/form\"\u003e\"\"\")\n}\n",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 10:02:31 AM",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,
@@ -114,19 +186,90 @@
       "settings": {
         "params": {},
         "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "ANGULAR",
+            "data": "        \u003cform class\u003d\"form-inline\"\u003e\n        \u003clabel for\u003did\u003eAWS Access ID\u003c/label\u003e\n        \u003cinput type\u003d\"password\" class\u003d\"form-control\" id\u003d\"id\" placeholder\u003d\"Access ID\" required minlenth\u003d\"1\" ng-model\u003d\"id\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003clabel for\u003dsecret\u003eAWS Access Secret\u003c/label\u003e\n        \u003cinput type\u003d\"password\" class\u003d\"form-control\" id\u003d\"secret\" placeholder\u003d\"Access secret\" required minlenth\u003d\"1\" ng-model\u003d\"secret\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003clabel for\u003dlocation\u003eS3 Bucket Location\u003c/label\u003e\n        \u003cinput type\u003d\"text\" class\u003d\"form-control\" id\u003d\"location\" placeholder\u003d\"Bucket location\" required minlenth\u003d\"1\" ng-model\u003d\"location\"\u003e\u003c/input\u003e\n        \u003cbr\u003e\n        \u003cbutton type\u003d\"bind\" class\u003d\"btn btn-primary\" ng-click\u003d\"z.angularBind(\u0027id\u0027,id,\u002720191009-093333_136112579\u0027);z.angularBind(\u0027secret\u0027,secret,\u002720191009-093333_136112579\u0027);\n        z.angularBind(\u0027location\u0027,location,\u002720191009-093333_136112579\u0027)\"\u003eConfirm\u003c/button\u003e\n        \u003c/form\"\u003e\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1570610143201_600046288",
+      "id": "20191009-140543_403946021",
+      "dateCreated": "Oct 9, 2019 2:05:43 PM",
+      "dateStarted": "Oct 9, 2019 3:52:27 PM",
+      "dateFinished": "Oct 9, 2019 3:52:27 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 4 : File format parsing options",
+      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    val dataSource \u003d z.get(\"dataSource\").asInstanceOf[String]\n    val fileFormat \u003d z.get(\"fileFormat\").asInstanceOf[String]\n    val dParams \u003d scala.collection.mutable.Map.empty[String,String] \n    dParams +\u003d (aws_id -\u003e z.angular(aws_id).asInstanceOf[String],\n            aws_secret-\u003ez.angular(aws_secret).asInstanceOf[String],\n            aws_location-\u003ez.angular(aws_location).asInstanceOf[String])\n    val fParams \u003d parseAndRender(getFileFormatParams(fileFormat),z)\n    \n    if(verifyParams(dParams,fParams)) {\n      configureDataSourceEnvParams(sc,dParams,dataSource)\n      val path \u003d getPathFromParams(dParams,dataSource)\n      val show \u003d z.select(\"Display generated path as string\",Seq((\"0\",\"No(recommended)\"),(\"1\",\"Yes\")))\n      show match{\n        case \"1\" \u003d\u003e printHTML(List(path),\"Path based on provided variables\")\n        case _ \u003d\u003e\n      }\n      z.put(\"dataSourceParams\",dParams)\n      z.put(\"path\",path)\n      z.put(\"fileParams\",fParams)\n    }\n}",
+      "user": "anonymous",
+      "dateUpdated": "Oct 10, 2019 2:36:57 PM",
+      "config": {
+        "colWidth": 10.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/text",
+        "title": true,
+        "editorHide": true,
+        "runOnSelectionChange": true
+      },
+      "settings": {
+        "params": {
+          "S3 access ID": "AKIAQVG42VJWZ7SUSMRK",
+          "S3 access secret": "EQDLyAar1Byc6zPHuXNrrYc8Tf5OvQcPG3KnOgOD",
+          "S3 bucket location": "ryft-public-sample-data/passengers.txt",
+          "Header in Text file": "false",
+          "Delimiter in Text File": ",",
+          "Display generated path as string": "0"
+        },
+        "forms": {
+          "Display generated path as string": {
+            "name": "Display generated path as string",
+            "displayName": "Display generated path as string",
+            "type": "select",
+            "defaultValue": "",
+            "options": [
+              {
+                "value": "0",
+                "displayName": "No(recommended)"
+              },
+              {
+                "value": "1",
+                "displayName": "Yes"
+              }
+            ],
+            "hidden": false
+          }
+        }
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
       },
       "apps": [],
       "jobName": "paragraph_1570593813207_-142495166",
       "id": "20191009-093333_136112579",
       "dateCreated": "Oct 9, 2019 9:33:33 AM",
-      "status": "READY",
+      "dateStarted": "Oct 10, 2019 2:36:57 PM",
+      "dateFinished": "Oct 10, 2019 2:36:57 PM",
+      "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "title": "Step 4 : Register External Table in catalog",
-      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    \n    val datasetName \u003d z.input(\"Dataset name\").asInstanceOf[String]\n    if(datasetName.length \u003d\u003d 0 ){\n        printHTML(List(\"Please provide name of the dataset to create the extenal table.\"),\"Warning\")\n    }else{\n       createExternalTable(sc,z,datasetName)\n       z.put(\"datasetName\",datasetName)\n    }\n}",
+      "text": "%snappydata\n{\n    import org.apache.zeppelin.interpreter.QueryBuilder._\n    \n    val datasetName \u003d z.input(\"Dataset name\").asInstanceOf[String]\n    if(datasetName.length \u003d\u003d 0 ){\n        printHTML(List(\"Please provide name of the dataset to create the extenal table.\"),\"Warning\")\n    }else{\n       createExternalTable(sc,z,datasetName)\n       //Clean all variables\n       z.remove(\"dataSource\")\n       z.remove(\"fileFormat\")\n       z.remove(\"dataSourceParams\")\n       z.remove(\"path\")\n       z.remove(\"fileParams\")\n    }\n}",
       "user": "anonymous",
-      "dateUpdated": "Oct 9, 2019 10:02:31 AM",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
       "config": {
         "colWidth": 10.0,
         "enabled": true,
@@ -140,14 +283,54 @@
         "editorHide": true
       },
       "settings": {
-        "params": {},
-        "forms": {}
+        "params": {
+          "Dataset name": "testTab"
+        },
+        "forms": {
+          "Dataset name": {
+            "name": "Dataset name",
+            "displayName": "Dataset name",
+            "type": "input",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
       },
       "apps": [],
       "jobName": "paragraph_1570593852136_-1072792816",
       "id": "20191009-093412_988083620",
       "dateCreated": "Oct 9, 2019 9:34:12 AM",
+      "dateStarted": "Oct 9, 2019 3:54:46 PM",
+      "dateFinished": "Oct 9, 2019 3:54:52 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%snappydata\n",
+      "user": "anonymous",
+      "dateUpdated": "Oct 10, 2019 2:36:46 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1570608703622_-1423171913",
+      "id": "20191009-134143_46834658",
+      "dateCreated": "Oct 9, 2019 1:41:43 PM",
       "status": "READY",
+      "errorMessage": "",
       "progressUpdateIntervalMs": 500
     }
   ],
@@ -155,7 +338,44 @@
   "id": "2ERG19YWQ",
   "angularObjects": {
     "2EQTYE6MH:shared_process": [],
-    "2EF2JFWKS:existing_process": [],
+    "2EF2JFWKS:existing_process": [
+      {
+        "name": "accessid",
+        "object": "test",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      },
+      {
+        "name": "bucketlocation",
+        "object": "test",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      },
+      {
+        "name": "accesssecret",
+        "object": "test123",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      },
+      {
+        "name": "location",
+        "object": "ryft-public-sample-data/passengers.txt",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      },
+      {
+        "name": "id",
+        "object": "AKIAQVG42VJWZ7SUSMRK",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      },
+      {
+        "name": "secret",
+        "object": "EQDLyAar1Byc6zPHuXNrrYc8Tf5OvQcPG3KnOgOD",
+        "noteId": "2ERG19YWQ",
+        "paragraphId": "20191009-093333_136112579"
+      }
+    ],
     "2EMUFVMUE:shared_process": [],
     "2EJMGJ8YD:shared_process": []
   },
