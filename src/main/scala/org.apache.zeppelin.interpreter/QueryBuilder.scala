@@ -1,104 +1,58 @@
 package org.apache.zeppelin.interpreter
 
+import scala.collection.mutable
+
 import org.apache.zeppelin.spark.ZeppelinContext
+
 import org.apache.spark.sql._
 import org.apache.spark.sql.{SnappySession, SparkSession}
 import scala.collection.mutable.{ListBuffer, Map}
+
 import org.apache.spark.sql._
 import org.apache.spark.SparkContext
 
 object QueryBuilder {
 
-  case class ParamText(name: String, desc: String,default : String , opts: Option[List[(String, String)]] = None, secure : Option[String]  = None)
-   /*
-   {
-      def render(z: ZeppelinContext) = opts match {
-        case Some(select) => z.select(desc,select.toSeq).asInstanceOf[String]
-        case _ => z.input(desc).asInstanceOf[String]
-      }
-
-      def render(): String ={
-        (opts,default) match {
-          case (Some(opts),Some(default)) => { }
-          case (Some(opts),_) => { }
-          case (_,Some(default)) => {
-            s"""<label for="${name}">${desc}</label> <input type="text" class="form-control" id="${name}" ng-model="${name}" ng-init="${name}='${default}'"}</input>"""
-          }
-          case _ => { s"""<label for="${name}">${desc}</label>
-              <input type="text" class="form-control" id="${name}" ng-model="${name}"}</input>"""}
-          }
-      }
-    }
-
-    def parseAndRender(pList : List[ParamText], z : ZeppelinContext) = {
-      val paramMap = scala.collection.mutable.Map.empty[String, String]
-      for (p <- pList)
-        paramMap += (p.name -> p.render(z))
-      paramMap
-    }
-   */
-
-  def renderParamList(pList : List[ParamText], paraID : String, executeNextParagraph : Boolean = false): Unit = {
-    if(!pList.isEmpty) {
-      val s = new StringBuilder()
-      val bind = new StringBuilder()
-      for (p <- pList) {
-        (p.opts) match {
-          case (Some(x)) => {
-            s ++=
-                s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
-                    <select matNativeControl required [(ng-model)]="select${p.name}">"""
-            for (m <- x)
-              s ++= s"""<option value="${m._1}" ${if ((m._2) == p.default) "selected" else ""}>${m._2}</option>"""
-            s ++= s"""</select></mat-form-field><br/>"""
-            bind ++= s"""z.angularBind('select${p.name}',select${p.name},'${paraID}');"""
-          }
-          case _ => {
-            s ++=
-                s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
-                  (p.secure) match {
-                    case Some(y) => y
-                    case _ => "text"
-                  }
-                } class="form-control" id="${p.name}" ng-model="${p.name}" ng-init="${p.name}='${p.default}'" required minlenth="4"}</input><br/>"""
-            bind ++= s"""z.angularBind('${p.name}',${p.name},'${paraID}');"""
-          }
-        }
-      }
-
-      println(
-        s"""%angular
-        <form class="form-inline">
-        <div>
-            ${s.toString}
-            <button type="bind" class="btn btn-primary" ng-click="${bind};${if (executeNextParagraph) s"z.runParagraph('${paraID}')" else ""}">Confirm</button>
-        </div>
-        </form>
-        """)
-    }
-  }
-
-  def printHTML(deps : List[String], src : String){
-    println(s"""%html <div><h5><span style="font-weight: bold;"> $src</h5> """)
-    deps.length match {
-      case 0 => println(s"""%html None""")
-      case _ => deps.map(d => println(s"""%html $d"""))
-     }
-  }
-
   // File formats
   lazy val csv = "CSV"
   lazy val csv_delimiter = "delimiter"
-  lazy val csv_encoding = "encoding"
-  lazy val csv_mode = "mode"
+  lazy val csv_charset = "charset"
+  lazy val csv_quote = "quote"
+  lazy val csv_escape = "escape"
+  lazy val csv_comment = "comment"
   lazy val csv_header = "header"
   lazy val csv_inferSchema = "inferSchema"
+  lazy val csv_mode = "mode"
+  lazy val csv_ignoreLeadingWhiteSpace = "ignoreLeadingWhiteSpace"
+  lazy val csv_ignoreTrailingWhiteSpace = "ignoreTrailingWhiteSpace"
+  lazy val csv_nullValue = "nullValue"
+  lazy val csv_nanValue = "nanValue"
+  lazy val csv_positiveInf = "positiveInf"
+  lazy val csv_negativeInf = "negativeInf"
+  lazy val csv_compressionCodec = "compressionCodec"
+  lazy val csv_dateFormat = "dateFormat"
+  lazy val csv_timestampFormat = "timestampFormat"
+  lazy val csv_maxColumns = "maxColumns"
+  lazy val csv_maxCharsPerColumn = "maxCharsPerColumn"
+  lazy val csv_escapeQuotes = "escapeQuotes"
+  lazy val csv_maxMalformedLogPerPartition = "maxMalformedLogPerPartition"
+  lazy val csv_quoteAll = "quoteAll"
+  lazy val csv_options = List(csv_delimiter,csv_charset,csv_quote,csv_escape,csv_comment,csv_header,
+    csv_inferSchema,csv_mode,csv_ignoreLeadingWhiteSpace,csv_ignoreTrailingWhiteSpace,
+    csv_nullValue,csv_nanValue,csv_positiveInf,csv_negativeInf,csv_compressionCodec,
+    csv_dateFormat,csv_timestampFormat,csv_maxColumns,csv_maxCharsPerColumn,csv_escapeQuotes,
+    csv_maxMalformedLogPerPartition,csv_quoteAll
+  )
+
+
   lazy val prq = "Parquet"
   lazy val json = "JSON"
   lazy val orc = "ORC"
   lazy val avro = "Avro"
+
   lazy val xml = "XML"
   lazy val xml_rowtag = "rowTag"
+
   lazy val txt = "Text"
   lazy val txt_header = "text_header"
   lazy val txt_delimiter = "text_delimiter"
@@ -132,7 +86,7 @@ object QueryBuilder {
   lazy val adls_accessor = "wasb"
   lazy val adls_domain = ".blob.core.windows.net"
 
-  private lazy val fileFormats = List((csv, csv),(prq,prq),(json,json),(orc,orc),(avro,avro),(xml,xml),(txt,txt))
+  private lazy val fileFormats = List(("default","select file format"),(csv, csv),(prq,prq),(json,json),(orc,orc),(avro,avro),(xml,xml),(txt,txt))
   private lazy val booleanOpts = List(("true", "true"), ("false", "false"))
   private lazy val sources = List((hdfs, "Hadoop File System"),(aws, "Amazon S3"),(lfs, "Local File System"),
                         (gcs, "Google Cloud Storage"),(adls, "Microsoft Azure Store"))
@@ -141,6 +95,66 @@ object QueryBuilder {
   private val dlColon = ":"
   private val dlColonSlash = dlColon + dlSlash + dlSlash
   private val dlAtRate = "@"
+
+  case class ParamText(name: String, desc: String,default : String , opts: Option[List[(String, String)]] = None, secure : Option[String]  = None)
+
+  def renderParamList(pList : List[ParamText], paraID : String, executeNextParagraph : Boolean = false): Unit = {
+    if(!pList.isEmpty) {
+      val s = new StringBuilder()
+      val bind = new StringBuilder()
+      val unbind = new StringBuilder()
+      for (p <- pList) {
+        (p.opts) match {
+          case (Some(x)) => {
+            s ++=
+                s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
+                    <select matNativeControl required [(ng-model)]="select${p.name}">"""
+            for (m <- x)
+              s ++= s"""<option value="${m._1}" ${if ((m._2) == p.default) "selected" else ""}>${m._2}</option>"""
+            s ++= s"""</select></mat-form-field><br/>"""
+            bind ++= s"""z.angularBind('select${p.name}',select${p.name},'${paraID}');"""
+            unbind ++= s"""z.angularUnbind('select${p.name}','${paraID}');"""
+          }
+          case _ => {
+            s ++= s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
+                  (p.secure) match {
+                    case Some(y) => y
+                    case _ => "text"
+                  }
+                } class="form-control" id="${p.name}" ng-model="${p.name}" ng-init="${p.name}='${p.default}'" minlength="4"}</input><br/>"""
+            bind ++= s"""z.angularBind('${p.name}',${p.name},'${paraID}');"""
+            unbind ++= s"""z.angularUnbind('${p.name}','${paraID}');"""
+          }
+        }
+      }
+
+      println(
+        s"""%angular
+        <form class="form-inline">
+        <div>
+            ${s.toString}
+            <button type="submit" class="btn btn-primary" ng-click="${bind};
+              ${if (executeNextParagraph) s"z.runParagraph('${paraID}')" else ""}"
+              onClick="update('Accepted successfully.')">Confirm</button>
+            <button type="submit" class="btn btn-primary" ng-click="${unbind};" onClick="update('information reset successfully.')">Reset</button>
+            <script>
+              function update(message){
+                alert(message)
+              }
+            </script>
+        </div>
+        </form>
+        """)
+    }
+  }
+
+  def printHTML(deps : List[String], src : String){
+    println(s"""%html <div><h5><span style="font-weight: bold;"> $src</h5> """)
+    deps.length match {
+      case 0 => println(s"""%html None""")
+      case _ => deps.map(d => println(s"""%html $d"""))
+    }
+  }
 
   def getPathFromParams(z : ZeppelinContext, ds : String) = ds match {
     case `hdfs` => hdfs + dlColonSlash + z.angular(hdfs_namenode).asInstanceOf[String] + dlSlash +
@@ -179,11 +193,37 @@ object QueryBuilder {
   }
 
   def getFileFormatParams(f : String): List[ParamText] = f match {
-    case `csv` => List(ParamText(csv_encoding, s"Encoding $csv", "UTF-8"),
-      ParamText(csv_delimiter, s"Delimiter in $csv",s","),
-      ParamText(csv_header, s"Header present in $csv","true", Some(booleanOpts)),
-      ParamText(csv_inferSchema, s"Infer Schema from $csv","true" , Some(booleanOpts)),
-      ParamText(csv_mode, s"Mode for bad records in $csv", "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"))))
+    case `csv` => List(
+          ParamText(csv_delimiter,csv_delimiter,","),
+          ParamText(csv_charset,csv_charset,"UTF-8"),
+          ParamText(csv_quote,csv_quote,"\""),
+          ParamText(csv_escape,csv_escape,"\\"),
+          ParamText(csv_comment,csv_comment,"\u0000"),
+          ParamText(csv_header,csv_header,"false",Some(booleanOpts)),
+          ParamText(csv_inferSchema,csv_inferSchema,"false",Some(booleanOpts)),
+          ParamText(csv_mode,csv_mode,"DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"),("PERMISSIVE","PERMISSIVE")))),
+          ParamText(csv_ignoreLeadingWhiteSpace,csv_ignoreLeadingWhiteSpace,"false",Some(booleanOpts)),
+          ParamText(csv_ignoreTrailingWhiteSpace,csv_ignoreTrailingWhiteSpace,"false",Some(booleanOpts)),
+          ParamText(csv_nullValue,csv_nullValue,""),
+          ParamText(csv_nanValue,csv_nanValue,"NaN"),
+          ParamText(csv_positiveInf,csv_positiveInf,"Inf"),
+          ParamText(csv_negativeInf,csv_negativeInf,"-Inf"),
+          ParamText(csv_compressionCodec, csv_compressionCodec + "(or codec)","none",
+            Some(List(("none","none"),
+              ("uncompressed","uncompressed"),
+              ("bzip2","bzip2"),
+              ("deflate","deflate"),
+              ("gzip","gzip"),
+              ("lz4","lz4"),
+              ("snappy","snappy")
+            ))),
+          ParamText(csv_dateFormat,csv_dateFormat,"yyyy-MM-dd"),
+          ParamText(csv_timestampFormat,csv_timestampFormat,"yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
+          ParamText(csv_maxColumns,csv_maxColumns,"20480"),
+          ParamText(csv_maxCharsPerColumn,csv_maxCharsPerColumn,"-1"),
+          ParamText(csv_escapeQuotes,csv_escapeQuotes,"true",Some(booleanOpts)),
+          ParamText(csv_maxMalformedLogPerPartition,csv_maxMalformedLogPerPartition,"10"),
+          ParamText(csv_quoteAll,csv_quoteAll,"false",Some(booleanOpts))
     )
     case `txt` => List(ParamText(txt_header,"Header in Text file","true",Some(booleanOpts)),
                      ParamText(txt_delimiter,"Delimiter in Text File",","))
@@ -205,15 +245,20 @@ object QueryBuilder {
     case _ => List()
   }
 
-/*  def getDependencyJarNames (d: String) = d match {
-    case `adls` => List("hadoop-azure*.jar","azure-storage*.jar")
-    case `gcs`  => List("gcs-connector-hadoop2-latest.jar")
-    case `avro` => List("Spark-Avro package")
-    case `xml`  => List("Spark-XML package")
-    case _      => List()
-  }*/
-
   def getFileFormats = fileFormats
+
+  def getFileFormatOptionsForSparkReader( ff : String,z : ZeppelinContext) = {
+    val opts = mutable.Map.empty[String,String]
+    ff match {
+      case `csv` => {
+        for( o <- csv_options) {
+          opts += (o -> z.angular(o).asInstanceOf[String])
+        }
+      }
+      case _ =>
+    }
+    opts.toMap
+  }
 
     def createExternalTable(sc : org.apache.spark.SparkContext, z : ZeppelinContext)= {
       val path = z.get("path").asInstanceOf[String]
@@ -225,10 +270,10 @@ object QueryBuilder {
       val options =
           s"""path '$path'""" + (ff match {
           case `csv` => s""",$csv_delimiter '${z.angular(csv_delimiter).asInstanceOf[String]}'
-                             |,$csv_encoding '${z.angular(csv_encoding).asInstanceOf[String]}'
-                             |,$csv_mode '${z.angular(csv_mode).asInstanceOf[String]}'
-                             |,$csv_header '${z.angular(csv_header).asInstanceOf[String]}'
-                             |,$csv_inferSchema '${z.angular(csv_inferSchema).asInstanceOf[String]}'""".stripMargin
+                             |,$csv_charset '${z.angular(csv_charset).asInstanceOf[String]}'
+                             |,$csv_mode '${"select" + z.angular(csv_mode).asInstanceOf[String]}'
+                             |,$csv_header '${"select" + z.angular(csv_header).asInstanceOf[String]}'
+                             |,$csv_inferSchema '${"select" + z.angular(csv_inferSchema).asInstanceOf[String]}'""".stripMargin
             case `txt` => s""",$txt_header '${z.angular(txt_header).asInstanceOf[String]}',$txt_delimiter '${z.angular(txt_delimiter).asInstanceOf[String]}'"""
             case `xml` => s""",$xml_rowtag '${z.angular(xml_rowtag).asInstanceOf[String]}' """
             case _ => ""
@@ -239,41 +284,11 @@ object QueryBuilder {
         (create_query,schemaTable)
     }
 
-/*  def verifyParams(dParams: scala.collection.mutable.Map[String,String], fParams : scala.collection.mutable.Map[String,String] ): Boolean ={
-    val incompleteDS = dParams.filter(_._2.length == 0 )
-    val incompleteFF = fParams.filter(_._2.length == 0)
-    val verify = (incompleteDS.keys.size == 0 && incompleteFF.keys.size == 0)
-    if(!verify){
-      if(incompleteDS.keys.size != 0)
-        printHTML(incompleteDS.keys.toList,"Warning : Data Source parameter(s) left blank.")
-      if(incompleteFF.keys.size != 0)
-        printHTML(incompleteFF.keys.toList,"Warning : File Format parameter(s) left blank.")
-    }
-    verify
- }*/
-
-/*  def renderDepsUI(ds: String,ff: String, z : ZeppelinContext) : scala.collection.mutable.Map[String, (String,String,String)] = {
-    val deps = getDependencyJarNames(ds) ::: getDependencyJarNames(ff)
-    val pMap = scala.collection.mutable.Map.empty[String, (String,String,String)]
-    deps.foreach(d => {
-      val name = z.input(s"Name (ex. MyPackage) for $d").asInstanceOf[String]
-      val coordinates = z.input(s"Coordinates (groupId:artifactId:version) for $d").asInstanceOf[String]
-      val path = z.input(s"Path (location reachable from LeadNode) for $d").asInstanceOf[String]
-      pMap += (d -> (name,coordinates,path))
-    })
-    pMap
-  }*/
-
-  def previewData(ds: String,ff: String,z : ZeppelinContext,sc : org.apache.spark.SparkContext) ={
+  def previewData(path : String, ff: String,z : ZeppelinContext,sc : org.apache.spark.SparkContext) ={
     val ss = new org.apache.spark.sql.SnappySession(sc)
-    val df=ss.read.format(ff).option("header","true").load(z.get("path").asInstanceOf[String])
+    val df=ss.read.format(ff).option("header","true").load(path)
     df.printSchema
     z.show(df,10)
-    val colNames = scala.collection.mutable.ListBuffer[(String,String)]()
-    for(s <- df.schema){
-      colNames  += ((s.name.toString,s.name.toString))
-    }
-    z.checkbox("Select columns to be imported in External Table",colNames.toList.toSeq).asInstanceOf[List[String]]
     df
   }
 
@@ -326,7 +341,7 @@ object QueryBuilder {
     val cols = new StringBuilder()
     val colUserInput = new StringBuilder()
     for(s <- df.schema){
-      if(z.angular(s.name.toString) == "true"){
+      if(z.angular(s.name.toString) != null){
         cols ++= s"""
                 <tr>
                     <td style="text-align:left">${s.name.toString}</td>
