@@ -110,7 +110,7 @@ object QueryBuilder {
            """
 
   private def renderButtons(bind: String, paraID: String, unbind: String, executeNextParagraph: Boolean) = {
-     s"""<button type="submit" class="btn btn-primary" ng-click="${bind};
+    s"""<button type="submit" class="btn btn-primary" ng-click="${bind};
               ${if (executeNextParagraph) s"z.runParagraph('${paraID}')" else ""}"
               onClick="update('Accepted successfully.')">Confirm</button>
             <button type="reset" class="btn btn-primary" ng-click="${unbind};">Reset</button>
@@ -332,7 +332,23 @@ object QueryBuilder {
         ${s.toString}
         </table>
         <br/>
-        ${renderButtons(bindCheckboxes.toString, paraID, unbind.toString(), false)}
+        <button type="submit" class="btn btn-primary" ng-click="${bindCheckboxes};"
+        onClick="update('Accepted successfully.')">Confirm</button>
+        <button type="reset" class="btn btn-primary" ng-click="${unbind}" onClick="clearSelected()">Reset</button>
+            <script>
+               function update(message){
+                  alert(message)
+                }
+               function clearSelected(){
+                  //Reference the Table.
+                  var grid = document.getElementById("Table1");
+                   //Reference the CheckBoxes in Table.
+                  var checkBoxes = grid.getElementsByTagName("INPUT");
+                  for (var i = 0; i < checkBoxes.length; i++) {
+                      checkBoxes[i].checked = false;
+                  }
+               }
+            </script>
         """
   }
 
@@ -341,9 +357,10 @@ object QueryBuilder {
     val colUserInput = new StringBuilder()
     val unbind = new StringBuilder()
     for (s <- df.schema) {
-      if (z.angular(s.name.toString) != null) {
-        cols ++=
-            s"""
+      z.angular(s.name).asInstanceOf[String] match {
+        case "true" => {
+          cols ++=
+              s"""
             <tr>
             <td style="text-align:left">${s.name.toString}</td>
             <td style="text-align:left">
@@ -362,16 +379,18 @@ object QueryBuilder {
                  ng-init="${s.name.toString + "_nullable"}='${s.nullable.toString}'" value="${s.nullable.toString}">
             </input> </td>
             </tr>"""
-        colUserInput ++=
-            s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$paraID');
+          colUserInput ++=
+              s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$paraID');
                 z.angularBind('${s.name.toString + "_dataType"}',${s.name.toString + "_dataType"},'$paraID');
                 z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$paraID');
                 """
-        unbind ++=
-            s"""z.angularUnbind('${s.name.toString + "_name"}','$paraID');
+        }
+        case _ =>
+      }
+      unbind ++=
+          s"""z.angularUnbind('${s.name.toString + "_name"}','$paraID');
                 z.angularUnbind('${s.name.toString + "_dataType"}','$paraID');
                 z.angularUnbind('${s.name.toString + "_nullable"}','$paraID');"""
-      }
     }
 
     s"""%angular
@@ -390,5 +409,18 @@ object QueryBuilder {
             <br/>
             ${renderButtons(colUserInput.toString, paraID, unbind.toString, false)}
         """
+  }
+
+  def getProjectionFromScehma(df : org.apache.spark.sql.DataFrame, z : ZeppelinContext ) : String = {
+    val p = new scala.collection.mutable.ListBuffer[String]()
+    for(s <- df.schema) {
+      if(z.angular(s.name.toString + "_name").asInstanceOf[String] != null){
+        p += List(z.angular(s.name.toString + "_name").asInstanceOf[String],
+          z.angular(s.name.toString + "_dataType").asInstanceOf[String],
+          (if (z.angular(s.name.toString + "_nullable").asInstanceOf[String] == "false")
+            "NOT NULL" else "NULL")).mkString(" ")
+      }
+    }
+    "(" + p.toList.mkString(",") + ")"
   }
 }
