@@ -1,3 +1,38 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * Changes for SnappyData data platform.
+ *
+ * Portions Copyright (c) 2017 SnappyData, Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you
+ * may not use this file except in compliance with the License. You
+ * may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License. See accompanying
+ * LICENSE file.
+ */
+
 package org.apache.zeppelin.interpreter
 
 import scala.collection.mutable
@@ -11,6 +46,12 @@ import scala.collection.mutable.{ListBuffer, Map}
 import org.apache.spark.sql._
 import org.apache.spark.SparkContext
 
+/**
+ * A utilities package for code generation and basic query string formation based on user inputs gathered using
+ * Zeppelin Notebooks using AngularJS UI controls and some of the Zeppelin APIs.
+ * * Uses Zeppelin Context as the inter paragraph data exchange mechanism.
+ * * Using AngularBind API of Zeppelin context to limit the access of variables to limited paragraphs.
+ */
 object QueryBuilder {
 
   // File formats
@@ -37,13 +78,6 @@ object QueryBuilder {
   lazy val csv_escapeQuotes = "escapeQuotes"
   lazy val csv_maxMalformedLogPerPartition = "maxMalformedLogPerPartition"
   lazy val csv_quoteAll = "quoteAll"
-  lazy val csv_options = List(csv_delimiter, csv_charset, csv_quote, csv_escape, csv_comment, csv_header,
-    csv_inferSchema, csv_mode, csv_ignoreLeadingWhiteSpace, csv_ignoreTrailingWhiteSpace,
-    csv_nullValue, csv_nanValue, csv_positiveInf, csv_negativeInf, csv_compressionCodec,
-    csv_dateFormat, csv_timestampFormat, csv_maxColumns, csv_maxCharsPerColumn, csv_escapeQuotes,
-    csv_maxMalformedLogPerPartition, csv_quoteAll
-  )
-
 
   lazy val prq = "Parquet"
   lazy val json = "JSON"
@@ -86,6 +120,7 @@ object QueryBuilder {
   lazy val adls_accessor = "wasb"
   lazy val adls_domain = ".blob.core.windows.net"
 
+  // Some reusable strings
   private lazy val fileFormats = List(("default", "select file format"), (csv, csv), (prq, prq), (json, json), (orc, orc), (avro, avro), (xml, xml), (txt, txt))
   private lazy val booleanOpts = List(("true", "true"), ("false", "false"))
   private lazy val sources = List((hdfs, "Hadoop File System"), (aws, "Amazon S3"), (lfs, "Local File System"),
@@ -96,9 +131,10 @@ object QueryBuilder {
   private val dlColonSlash = dlColon + dlSlash + dlSlash
   private val dlAtRate = "@"
 
-  private val tableStyle =
+  // AngularJS related element properties and functions
+  private lazy val tableStyle =
     s"""
-            <style>
+     <style>
             table, th, td {
                 border: 1px solid black;
                 }
@@ -108,53 +144,120 @@ object QueryBuilder {
                 }
             </style>
            """
+  private lazy val confirmMessage = s"""confirm('Values updated successfully.')"""
+  private lazy val confirmOnClickFunction =
+    s"""
+       |function confirm(message){
+       |  alert(message)
+       |}
+     """.stripMargin
+  private lazy val btnSubmit = "submit"
+  private lazy val btnReset = "reset"
+  private lazy val btnText = "text"
+  private lazy val btnSuccess = "btn-success"
+  private lazy val btnPrimary = "btn-primary"
+  private lazy val btnDanger = "btn-danger"
 
-  private def renderButtons(bind: String, paraID: String, unbind: String, executeNextParagraph: Boolean) = {
-    s"""<button type="submit" class="btn btn-primary" ng-click="${bind};
-              ${if (executeNextParagraph) s"z.runParagraph('${paraID}')" else ""}"
-              onClick="update('Accepted successfully.')">Confirm</button>
-            <button type="reset" class="btn btn-primary" ng-click="${unbind};">Reset</button>
-            <script>
-              function update(message){
-                alert(message)
-              }
-            </script>"""
+  /**
+   * Helper function for generating the buttons related section of the final string to be submitted to Angular.
+   * @param buttons
+   * @return
+   */
+  private def renderButtons(buttons: List[AngularButton]): String = {
+    val render = new StringBuilder()
+    val script = new StringBuilder(s"""<script>""")
+    for (b <- buttons) {
+      render ++= s"""<button type="${b.btType}" class="btn ${b.btClass}" """
+      b.btNgClick match {
+        case Some(x) => render ++= s"""ng-click = "$x""""
+        case _ =>
+      }
+      (b.btOnClickSignature, b.btOnClickFunction) match {
+        case (Some(x), Some(y)) => render ++= s"""onClick = "$x""""
+          script ++= y
+        case (_, _) =>
+      }
+      render ++= s">${b.btLabel}</button>"
+    }
+    script ++= (s"""</script>""")
+    render.toString + script.toString
   }
 
-  case class ParamText(name: String,
+  /**
+   * A representation of parameters that need to be passed to the file readers.
+   *
+   * @param name    name of the property as specified in the Spark (or reader library) documentation
+   * @param desc    Description for the label that accompanies the input UI control.
+   * @param default Default value if any, as specified in the Spark (or reader library) documentation
+   * @param opts    List of options in case the property values can be defined in a limited set of known values.
+   * @param secure  Whether parameter captures sensitive information that needs to be obscured on the UI.
+   */
+  case class ParamText(
+      name: String,
       desc: String,
       default: String,
       opts: Option[List[(String, String)]] = None,
       secure: Option[String] = None)
 
-  def renderParamList(pList: List[ParamText], paraID: String, executeNextParagraph: Boolean = false): String = {
+  /**
+   * Representation of a AngularJS button.
+   *
+   * @param btType    Type of button (text,submit,reset)
+   * @param btLabel   Text to be populated in the button highlighting its purpose
+   * @param btClass   Class of the button (https://www.w3schools.com/bootstrap/bootstrap_buttons.asp)
+   * @param btNgClick String representation of the code that needs to be executed on click.
+   *                  Used for binding with zeppelin context for now.
+   * @param btOnClickSignature Function that gets registered with the OnClick property of the button.
+   * @param btOnClickFunction Complete function definition that gets added to the "script" section of the Angular code.
+   */
+  case class AngularButton(
+      btType: String,
+      btLabel: String,
+      btClass: String,
+      btNgClick: Option[String] = None,
+      btOnClickSignature: Option[String] = None,
+      btOnClickFunction: Option[String] = None
+  )
+
+  /**
+   * Utility function to render list of parameters using AngularJS controls.
+   * @param pList List of ParamText
+   * @param paraIDs
+   * @param executeNextParagraph
+   * @return
+   */
+  def renderParamList(pList: List[ParamText], paraIDs: List[String], executeNextParagraph: Boolean = false): String = {
     val s = new StringBuilder()
     val bind = new StringBuilder()
     val unbind = new StringBuilder()
     for (p <- pList) {
-      (p.opts) match {
-        case (Some(x)) => {
+      p.opts match {
+        case Some(x) =>
           s ++=
               s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
                     <select matNativeControl required ng-model="${p.name}">"""
           for (m <- x)
-            s ++= s"""<option value="${m._1}" ${if ((m._2) == p.default) "selected" else ""}>${m._2}</option>"""
+            s ++= s"""<option value="${m._1}" ${if (m._2 == p.default) "selected"} >${m._2}</option>"""
           s ++= s"""</select></mat-form-field><br/>"""
-          bind ++= s"""z.angularBind('${p.name}',${p.name},'${paraID}');"""
-          unbind ++= s"""z.angularUnbind('${p.name}','${paraID}');"""
-        }
-        case _ => {
+          for (para <- paraIDs) {
+            bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
+            unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
+          }
+
+        case _ =>
           s ++=
               s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
-                (p.secure) match {
+                p.secure match {
                   case Some(y) => y
                   case _ => "text"
                 }
               } class="form-control" id="${p.name}" ng-model="${p.name}" ng-init="${p.name}='${p.default}'"}
                 </input><br/>"""
-          bind ++= s"""z.angularBind('${p.name}',${p.name},'${paraID}');"""
-          unbind ++= s"""z.angularUnbind('${p.name}','${paraID}');"""
-        }
+          for (para <- paraIDs) {
+            bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
+            unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
+          }
+
       }
     }
 
@@ -162,14 +265,23 @@ object QueryBuilder {
         <form class="form-inline">
         <div>
             ${s.toString}
-            ${renderButtons(bind.toString, paraID, unbind.toString, executeNextParagraph)}
+            ${
+      renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
+        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
+    }
         </div>
         </form>
         """
   }
 
 
-  def getPathFromParams(z: ZeppelinContext, ds: String) = ds match {
+  /**
+   * Function to create the final path string based on user inputs provided for a particular data source.
+   * @param z Zeppelin Context
+   * @param ds
+   * @return
+   */
+  def getPathFromParams(z: ZeppelinContext, ds: String): String = ds match {
     case `hdfs` => hdfs + dlColonSlash + z.angular(hdfs_namenode).asInstanceOf[String] + dlSlash +
         z.angular(hdfs_path).asInstanceOf[String]
     case `aws` => z.angular(aws_accessor) + dlColonSlash + z.angular(aws_id).asInstanceOf[String] + dlColon +
@@ -183,35 +295,42 @@ object QueryBuilder {
     case _ => ""
   }
 
-  //def configureDataSourceEnvParams(sc : org.apache.spark.SparkContext,params : scala.collection.mutable.Map[String,String], ds : String) = ds match {
-  def configureDataSourceEnvParams(sc: org.apache.spark.SparkContext, z: ZeppelinContext, ds: String) = ds match {
-    case `gcs` => {
+  /**
+   * Set parameters in the Spark Context to allow access without having to expose sensitive string in path.
+   * @param sc Spark Context provided by Zeppelin.
+   * @param z Zepplin Context
+   * @param ds Data source identifier string
+   */
+  def configureDataSourceEnvParams(sc: org.apache.spark.SparkContext, z: ZeppelinContext, ds: String): Unit = ds match {
+    case `gcs` =>
       sc.hadoopConfiguration.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
       sc.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
       sc.hadoopConfiguration.set("fs.gs.project.id", z.angular(gcs_projID).asInstanceOf[String])
       sc.hadoopConfiguration.set("google.cloud.auth.service.account.enable", "true")
       sc.hadoopConfiguration.set("google.cloud.auth.service.account.json.keyfile", z.angular(gcs_keyPath).asInstanceOf[String])
-    }
-    case `adls` => {
+    case `adls` =>
       sc.hadoopConfiguration.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
       sc.hadoopConfiguration.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb")
       sc.hadoopConfiguration.set("fs.azure", "org.apache.hadoop.fs.azure.NativeAzureFileSystem")
       sc.hadoopConfiguration.set("fs.azure.account.key." + z.angular(adls_storage).asInstanceOf[String] + adls_domain, z.angular(adls_key).asInstanceOf[String])
-    }
-    case `aws` => {
+    case `aws` =>
       sc.hadoopConfiguration.set("fs." + z.angular(aws_accessor).asInstanceOf[String] + ".awsAccessKeyId", z.angular(aws_id).asInstanceOf[String])
       sc.hadoopConfiguration.set("fs." + z.angular(aws_accessor).asInstanceOf[String] + ".awsSecretAccessKey", z.angular(aws_secret).asInstanceOf[String])
-    }
     case _ =>
   }
 
+  /**
+   * Get list of parameters associated with a file format. Parameters reference from Spark (or reader library) docs.
+   * @param f File format identifier string
+   * @return
+   */
   def getFileFormatParams(f: String): List[ParamText] = f match {
     case `csv` => List(
       ParamText(csv_delimiter, csv_delimiter, ","),
       ParamText(csv_charset, csv_charset, "UTF-8"),
       ParamText(csv_quote, csv_quote, "\""),
       ParamText(csv_escape, csv_escape, "\\"),
-      ParamText(csv_comment, csv_comment, "\u0000"),
+      ParamText(csv_comment, csv_comment, ""),
       ParamText(csv_header, csv_header, "false", Some(booleanOpts)),
       ParamText(csv_inferSchema, csv_inferSchema, "false", Some(booleanOpts)),
       ParamText(csv_mode, csv_mode, "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"), ("PERMISSIVE", "PERMISSIVE")))),
@@ -231,7 +350,7 @@ object QueryBuilder {
           ("snappy", "snappy")
         ))),
       ParamText(csv_dateFormat, csv_dateFormat, "yyyy-MM-dd"),
-      ParamText(csv_timestampFormat, csv_timestampFormat, "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"),
+      ParamText(csv_timestampFormat, csv_timestampFormat, s"yyyy-MM-dd\\'T\\'HH:mm:ss.SSSZZ"),
       ParamText(csv_maxColumns, csv_maxColumns, "20480"),
       ParamText(csv_maxCharsPerColumn, csv_maxCharsPerColumn, "-1"),
       ParamText(csv_escapeQuotes, csv_escapeQuotes, "true", Some(booleanOpts)),
@@ -244,9 +363,18 @@ object QueryBuilder {
     case _ => List()
   }
 
-  def getDataSources = sources
+  /**
+   * Get the list of data sources currently supported by the functions.
+   * @return
+   */
+  def getDataSources: List[(String, String)] = sources
 
-  def getDataSourceParams(d: String) = d match {
+  /**
+   * Get parameters associated with a particular data source.
+   * @param d String identifier for data source.
+   * @return
+   */
+  def getDataSourceParams(d: String): List[ParamText] = d match {
     case `hdfs` => List(ParamText(hdfs_namenode, "HDFS Name node", "localhost:9000"), ParamText(hdfs_path, "Path of file in HDFS", ""))
     case `aws` => List(ParamText(aws_id, "S3 access ID", "", None, Some("password")), ParamText(aws_secret, "S3 access secret", "", None, Some("password"))
       , ParamText(aws_location, "S3 bucket location", ""))
@@ -258,48 +386,52 @@ object QueryBuilder {
     case _ => List()
   }
 
-  def getFileFormats = fileFormats
+  /**
+   * Get the list of file formats currently supported by functions.
+   * @return
+   */
+  def getFileFormats: List[(String, String)] = fileFormats
 
-  def getFileFormatOptionsForSparkReader(ff: String, z: ZeppelinContext) = {
+  def getFileFormatOptionsForSparkReader(ff: String, z: ZeppelinContext): Predef.Map[String, String] = {
     val opts = mutable.Map.empty[String, String]
     for (p <- getFileFormatParams(ff)) {
       z.angular(p.name).asInstanceOf[String] match {
         case null => opts += (p.name -> p.default)
-        case _ => {
-          opts += (p.name -> z.angular(p.name).asInstanceOf[String])
-        }
+        case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
       }
     }
     opts.toMap
   }
 
-  // FIXME [23/10/2019] : This is outdated version. Fix it with new APIs within QueryBuilder class.
-  /*def createExternalTable(sc: org.apache.spark.SparkContext, z: ZeppelinContext) = {
-    val path = z.get("path").asInstanceOf[String]
-    val ds = z.get("dataSource").asInstanceOf[String]
-    val ff = z.get("fileFormat").asInstanceOf[String]
+  /**
+   * Get the string that needs to be passed as the options field in Query being submitted to SnappySession.
+   * @param ff File format identifier string
+   * @param z Zeppelin Context
+   * @return
+   */
+  def getFileFormatOptionsForSnappy(ff: String, z: ZeppelinContext): String = {
+    val opts = new scala.collection.mutable.ListBuffer[String]
+    for (p <- org.apache.zeppelin.interpreter.QueryBuilder.getFileFormatParams(ff)) {
+      z.angular(p.name).asInstanceOf[String] match {
+        case null => opts += s"""${p.name} '${p.default}'"""
+        case _ => {
+          opts += s"""${p.name} '${z.angular(p.name).asInstanceOf[String]}'"""
+        }
+      }
+    }
+    opts.toList.mkString(",")
+  }
 
-    val ss = new org.apache.spark.sql.SnappySession(sc)
-    val dropTable = ss.sql(s"""DROP TABLE IF EXISTS ${z.angular("dataset")}""")
-    val options =
-      s"""path '$path'""" + (ff match {
-        case `csv` => s""",$csv_delimiter '${z.angular(csv_delimiter).asInstanceOf[String]}'
-                         |,$csv_charset '${z.angular(csv_charset).asInstanceOf[String]}'
-                         |,$csv_mode '${"select" + z.angular(csv_mode).asInstanceOf[String]}'
-                         |,$csv_header '${"select" + z.angular(csv_header).asInstanceOf[String]}'
-                         |,$csv_inferSchema '${"select" + z.angular(csv_inferSchema).asInstanceOf[String]}'""".stripMargin
-        case `txt` => s""",$txt_header '${z.angular(txt_header).asInstanceOf[String]}',$txt_delimiter '${z.angular(txt_delimiter).asInstanceOf[String]}'"""
-        case `xml` => s""",$xml_rowtag '${z.angular(xml_rowtag).asInstanceOf[String]}' """
-        case _ => ""
-      })
-    val create_query = s"""CREATE EXTERNAL TABLE IF NOT EXISTS ${z.angular("dataset")} using $ff OPTIONS($options) """
-    val createTable = ss.sql(create_query)
-    val schemaTable = ss.table(s"${z.angular("dataset")}")
-    (create_query, schemaTable)
-  }*/
-
-  def generateTabularSchema(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraID: String): String = {
+  /**
+   * Generate angular code of a table for schema with checkboxes for selection.
+   * @param z Zeppelin Context
+   * @param df Data frame from which schema will be inferred.
+   * @param paraIDs Zeppelin paragraph with which these variables need to be bound.
+   * @return
+   */
+  def generateTabularSchema(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
     val cols = scala.collection.mutable.ListBuffer[(String, String, String)]()
+    val jsTableName = "TabularSchema"
     for (s <- df.schema) {
       cols += ((s.name.toString, s.dataType.toString, s.nullable.toString))
     }
@@ -316,13 +448,29 @@ object QueryBuilder {
             <td style="text-align:center">${c._3}</td>
             </tr>
             """
-      bindCheckboxes ++= s"""z.angularBind('${c._1}',${c._1},'${paraID}');"""
-      unbind ++= s"""z.angularUnbind('${c._1}','${paraID}');"""
+      for (para <- paraIDs) {
+        bindCheckboxes ++= s"""z.angularBind('${c._1}',${c._1},'$para');"""
+        unbind ++= s"""z.angularUnbind('${c._1}','$para');"""
+      }
     }
 
+    val fnName = "updateAll"
+    val updateFunction =
+      s"""
+         |function $fnName(select){
+         |                  //Reference the Table.
+         |                  var grid = document.getElementById("$jsTableName");
+         |                  //Reference the CheckBoxes in Table.
+         |                  var checkBoxes = grid.getElementsByTagName("INPUT");
+         |                  for (var i = 0; i < checkBoxes.length; i++) {
+         |                      checkBoxes[i].checked = select;
+         |                  }
+         |               }
+       """.stripMargin
+
     s"""%angular
-        ${tableStyle}
-        <table cellspacing="0" rules="all" id="Table1" style="border-collapse: collapse;">
+        $tableStyle
+        <table cellspacing="0" rules="all" id=$jsTableName style="border-collapse: collapse;">
         <tr>
             <th style="width:120px;text-align:center">Import</th>
             <th style="width:120px;text-align:center">Column Name</th>
@@ -332,29 +480,24 @@ object QueryBuilder {
         ${s.toString}
         </table>
         <br/>
-        <button type="submit" class="btn btn-primary" ng-click="${bindCheckboxes};"
-        onClick="update('Accepted successfully.')">Confirm</button>
-        <button type="reset" class="btn btn-primary" ng-click="${unbind}" onClick="clearSelected()">Reset</button>
-            <script>
-               function update(message){
-                  alert(message)
-                }
-               function clearSelected(){
-                  //Reference the Table.
-                  var grid = document.getElementById("Table1");
-                   //Reference the CheckBoxes in Table.
-                  var checkBoxes = grid.getElementsByTagName("INPUT");
-                  for (var i = 0; i < checkBoxes.length; i++) {
-                      checkBoxes[i].checked = false;
-                  }
-               }
-            </script>
+        ${
+      renderButtons(List(AngularButton(btnSubmit, "CheckAll", btnPrimary, None, Some(fnName + "(true)"), Some(updateFunction)),
+        AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
+        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), Some(fnName + "(false)"), Some(updateFunction))))
+    }
         """
   }
 
-  def generateSchemaSelector(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraID: String): String = {
+  /**
+   * Generate a table for existing schema and text boxes that allow user to update schema before final query formation.
+   * @param z Zepplin Context
+   * @param df Data Frame from which schema will be inferred.
+   * @param paraIDs List of Zeppelin notebook paragraphs with which these variables should be bound.
+   * @return
+   */
+  def generateSchemaSelector(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
     val cols = new StringBuilder()
-    val colUserInput = new StringBuilder()
+    val bind = new StringBuilder()
     val unbind = new StringBuilder()
     for (s <- df.schema) {
       z.angular(s.name).asInstanceOf[String] match {
@@ -379,46 +522,64 @@ object QueryBuilder {
                  ng-init="${s.name.toString + "_nullable"}='${s.nullable.toString}'" value="${s.nullable.toString}">
             </input> </td>
             </tr>"""
-          colUserInput ++=
-              s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$paraID');
-                z.angularBind('${s.name.toString + "_dataType"}',${s.name.toString + "_dataType"},'$paraID');
-                z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$paraID');
+          for (para <- paraIDs) {
+            bind ++=
+                s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$para');
+                z.angularBind('${s.name.toString + "_dataType"}',${s.name.toString + "_dataType"},'$para');
+                z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$para');
                 """
+          }
+
         }
         case _ =>
       }
-      unbind ++=
-          s"""z.angularUnbind('${s.name.toString + "_name"}','$paraID');
-                z.angularUnbind('${s.name.toString + "_dataType"}','$paraID');
-                z.angularUnbind('${s.name.toString + "_nullable"}','$paraID');"""
+      for (para <- paraIDs) {
+        unbind ++=
+            s"""z.angularUnbind('${s.name.toString + "_name"}','$para');
+                z.angularUnbind('${s.name.toString + "_dataType"}','$para');
+                z.angularUnbind('${s.name.toString + "_nullable"}','$para');"""
+      }
     }
 
     s"""%angular
-            ${tableStyle}
-            <table cellspacing="0" rules="all" id="Table1" style="border-collapse: collapse;">
+            $tableStyle
+            <table cellspacing="0" rules="all" id="SchemaSelector" style="border-collapse: collapse;">
+                <tr>
+                     <th text-align:center">Inferred from data</th>
+                     <th text-align:center">[Optional] User specified</th>
+                <tr>
                 <tr>
                     <th style="width:120px;text-align:center">Column Name</th>
                     <th style="width:60px;text-align:center">Type</th>
                     <th style="width:60px;text-align:center">Nullable</th>
-                    <th style="width:120px;text-align:center">Import as Column Name</th>
-                    <th style="width:60px;text-align:center">Import as Type</th>
-                    <th style="width:60px;text-align:center">Import as Nullable</th>
+                    <th style="width:120px;text-align:center">Column Name</th>
+                    <th style="width:60px;text-align:center">Type</th>
+                    <th style="width:60px;text-align:center">Nullable</th>
                 </tr>
                 ${cols.toString}
             </table>
             <br/>
-            ${renderButtons(colUserInput.toString, paraID, unbind.toString, false)}
+            ${
+      renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
+        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
+    }}
         """
   }
 
-  def getProjectionFromScehma(df : org.apache.spark.sql.DataFrame, z : ZeppelinContext ) : String = {
+  /**
+   * Generate the projection based on schema.
+   * @param df Data frame from which schema will be inferred.
+   * @param z Zeppelin Context
+   * @return
+   */
+  def getProjectionFromScehma(df: org.apache.spark.sql.DataFrame, z: ZeppelinContext): String = {
     val p = new scala.collection.mutable.ListBuffer[String]()
-    for(s <- df.schema) {
-      if(z.angular(s.name.toString + "_name").asInstanceOf[String] != null){
+    for (s <- df.schema) {
+      if (z.angular(s.name.toString + "_name").asInstanceOf[String] != null) {
         p += List(z.angular(s.name.toString + "_name").asInstanceOf[String],
           z.angular(s.name.toString + "_dataType").asInstanceOf[String],
-          (if (z.angular(s.name.toString + "_nullable").asInstanceOf[String] == "false")
-            "NOT NULL" else "NULL")).mkString(" ")
+          if (z.angular(s.name.toString + "_nullable").asInstanceOf[String] == "false")
+            "NOT NULL" else "NULL").mkString(" ")
       }
     }
     "(" + p.toList.mkString(",") + ")"
