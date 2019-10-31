@@ -47,10 +47,10 @@ import org.apache.spark.sql._
 import org.apache.spark.SparkContext
 
 /**
- * A utilities package for code generation and basic query string formation based on user inputs gathered using
- * Zeppelin Notebooks using AngularJS UI controls and some of the Zeppelin APIs.
- * * Uses Zeppelin Context as the inter paragraph data exchange mechanism.
- * * Using AngularBind API of Zeppelin context to limit the access of variables to limited paragraphs.
+ * An utility package for AngularJS code generation and basic query string formation based on user inputs
+ * gathered using Zeppelin Notebooks using AngularJS UI controls and some of the Zeppelin APIs.
+ * # Uses Zeppelin Context as the inter paragraph data exchange mechanism.
+ * # Using AngularBind API of Zeppelin context to limit the access of variables to limited paragraphs.
  */
 object QueryBuilder {
 
@@ -135,15 +135,14 @@ object QueryBuilder {
   private lazy val tableStyle =
     s"""
      <style>
-            table, th, td {
-                border: 1px solid black;
-                }
+      table, th, td {
+        border: 1px solid black;
+      }
+      th, td {
+        padding: 2px;
+      }
+     </style>"""
 
-                th, td {
-                  padding: 2px;
-                }
-            </style>
-           """
   private lazy val confirmMessage = s"""confirm('Values updated successfully.')"""
   private lazy val confirmOnClickFunction =
     s"""
@@ -177,7 +176,7 @@ object QueryBuilder {
           script ++= y
         case (_, _) =>
       }
-      render ++= s">${b.btLabel}</button>"
+      render ++= s">${b.btLabel}</button>&emsp;"
     }
     script ++= (s"""</script>""")
     render.toString + script.toString
@@ -230,48 +229,52 @@ object QueryBuilder {
     val s = new StringBuilder()
     val bind = new StringBuilder()
     val unbind = new StringBuilder()
-    for (p <- pList) {
-      p.opts match {
-        case Some(x) =>
-          s ++=
-              s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
+
+    pList match {
+      case Nil => "Current selection does not need any parameters to be initialized."
+      case _ => for (p <- pList) {
+        p.opts match {
+          case Some(x) =>
+            s ++=
+                s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
                     <select matNativeControl required ng-model="${p.name}">"""
-          for (m <- x)
-            s ++= s"""<option value="${m._1}" ${if (m._2 == p.default) "selected"} >${m._2}</option>"""
-          s ++= s"""</select></mat-form-field><br/>"""
-          for (para <- paraIDs) {
-            bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
-            unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
-          }
+            for (m <- x)
+              s ++= s"""<option value="${m._1}" ${if (m._2 == p.default) "selected"} >${m._2}</option>"""
+            s ++= s"""</select></mat-form-field><br/>"""
+            for (para <- paraIDs) {
+              bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
+              unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
+            }
 
-        case _ =>
-          s ++=
-              s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
-                p.secure match {
-                  case Some(y) => y
-                  case _ => "text"
-                }
-              } class="form-control" id="${p.name}" ng-model="${p.name}" ng-init="${p.name}='${p.default}'"}
+          case _ =>
+            s ++=
+                s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
+                  p.secure match {
+                    case Some(y) => y
+                    case _ => "text"
+                  }
+                } class="form-control" id="${p.name}" ng-model="${p.name}" ng-init="${p.name}='${p.default}'"}
                 </input><br/>"""
-          for (para <- paraIDs) {
-            bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
-            unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
-          }
+            for (para <- paraIDs) {
+              bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
+              unbind ++= s"""z.angularUnbind('${p.name}','$para');"""
+            }
 
+        }
       }
-    }
 
-    s"""%angular
+        s"""%angular
         <form class="form-inline">
         <div>
             ${s.toString}
             ${
-      renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
-        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
-    }
+          renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
+            AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
+        }
         </div>
         </form>
         """
+    }
   }
 
 
@@ -394,11 +397,13 @@ object QueryBuilder {
 
   def getFileFormatOptionsForSparkReader(ff: String, z: ZeppelinContext): Predef.Map[String, String] = {
     val opts = mutable.Map.empty[String, String]
-    for (p <- getFileFormatParams(ff)) {
-      z.angular(p.name).asInstanceOf[String] match {
-        case null => opts += (p.name -> p.default)
-        case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
-      }
+    getFileFormatParams(ff) match {
+      case Nil =>
+      case x: List[ParamText] =>
+        x.foreach(p => z.angular(p.name).asInstanceOf[String] match {
+          case null => opts += (p.name -> p.default)
+          case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
+        })
     }
     opts.toMap
   }
@@ -411,14 +416,14 @@ object QueryBuilder {
    */
   def getFileFormatOptionsForSnappy(ff: String, z: ZeppelinContext): String = {
     val opts = new scala.collection.mutable.ListBuffer[String]
-    for (p <- org.apache.zeppelin.interpreter.QueryBuilder.getFileFormatParams(ff)) {
-      z.angular(p.name).asInstanceOf[String] match {
-        case null => opts += s"""${p.name} '${p.default}'"""
-        case _ => {
-          opts += s"""${p.name} '${z.angular(p.name).asInstanceOf[String]}'"""
-        }
+    getFileFormatParams(ff) match {
+      case Nil =>
+      case x : List[ParamText] => x.foreach(p =>
+         z.angular(p.name).asInstanceOf[String] match {
+          case null => opts += s"""${p.name} '${p.default}'"""
+          case _ => opts += s"""${p.name} '${z.angular(p.name).asInstanceOf[String]}'"""
+        })
       }
-    }
     opts.toList.mkString(",")
   }
 
@@ -458,15 +463,12 @@ object QueryBuilder {
     val updateFunction =
       s"""
          |function $fnName(select){
-         |                  //Reference the Table.
-         |                  var grid = document.getElementById("$jsTableName");
-         |                  //Reference the CheckBoxes in Table.
-         |                  var checkBoxes = grid.getElementsByTagName("INPUT");
-         |                  for (var i = 0; i < checkBoxes.length; i++) {
-         |                      checkBoxes[i].checked = select;
-         |                  }
-         |               }
-       """.stripMargin
+         |  var grid = document.getElementById("$jsTableName");
+         |  var checkBoxes = grid.getElementsByTagName("INPUT");
+         |  for (var i = 0; i < checkBoxes.length; i++) {
+         |   checkBoxes[i].checked = select;
+         |  }
+         |}""".stripMargin
 
     s"""%angular
         $tableStyle
@@ -496,74 +498,79 @@ object QueryBuilder {
    * @return
    */
   def generateSchemaSelector(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
-    val cols = new StringBuilder()
-    val bind = new StringBuilder()
-    val unbind = new StringBuilder()
-    for (s <- df.schema) {
-      z.angular(s.name).asInstanceOf[String] match {
-        case "true" => {
-          cols ++=
-              s"""
-            <tr>
-            <td style="text-align:left">${s.name.toString}</td>
-            <td style="text-align:left">
-                ${s.dataType.toString.replaceAll("Type", "").toLowerCase}
-            </td>
-            <td style="text-align:center">${s.nullable.toString}</td>
-            <td> <input type="text" class="form-control" ng-model="${s.name.toString + "_name"}"
-                 ng-init="${s.name.toString + "_name"}='${s.name.toString}'" value="${s.name.toString}">
-                 </input></td>
-            <td> <input type="text" class="form-control" ng-model="${s.name.toString + "_dataType"}"
-                 ng-init="${s.name.toString + "_dataType"}=
-                 '${s.dataType.toString.replaceAll("Type", "").toLowerCase}'"
-                 value="${s.dataType.toString.replaceAll("Type", "").toLowerCase}">
-                 </input> </td>
-            <td><input type="text" class="form-control" ng-model="${s.name.toString + "_nullable"}"
-                 ng-init="${s.name.toString + "_nullable"}='${s.nullable.toString}'" value="${s.nullable.toString}">
-            </input> </td>
-            </tr>"""
-          for (para <- paraIDs) {
-            bind ++=
-                s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$para');
-                z.angularBind('${s.name.toString + "_dataType"}',${s.name.toString + "_dataType"},'$para');
-                z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$para');
-                """
-          }
+    df.schema.isEmpty match {
+      case true => "Empty Dataframe provided. No schema to be rendered."
+      case _ =>
+        val cols = new StringBuilder()
+        val bind = new StringBuilder()
+        val unbind = new StringBuilder()
+        for (s <- df.schema) {
+          z.angular(s.name).asInstanceOf[String] match {
+            case "true" => {
+              cols ++=
+                  s"""
+                    <tr>
+                    <td style="text-align:left">${s.name.toString}</td>
+                    <td style="text-align:left">
+                        ${s.dataType.toString.replaceAll("Type", "").toLowerCase}
+                    </td>
+                    <td style="text-align:center">${s.nullable.toString}</td>
+                    <td> <input type="text" class="form-control" ng-model="${s.name.toString + "_name"}"
+                         ng-init="${s.name.toString + "_name"}='${s.name.toString}'" value="${s.name.toString}">
+                         </input></td>
+                    <td> <input type="text" class="form-control" ng-model="${s.name.toString + "_dataType"}"
+                         ng-init="${s.name.toString + "_dataType"}=
+                         '${s.dataType.toString.replaceAll("Type", "").toLowerCase}'"
+                         value="${s.dataType.toString.replaceAll("Type", "").toLowerCase}">
+                         </input> </td>
+                    <td><input type="text" class="form-control" ng-model="${s.name.toString + "_nullable"}"
+                         ng-init="${s.name.toString + "_nullable"}='${s.nullable.toString}'" value="${s.nullable.toString}">
+                    </input> </td>
+                    </tr>"""
+                      for (para <- paraIDs) {
+                        bind ++=
+                            s"""z.angularBind('${s.name.toString + "_name"}',${s.name.toString + "_name"},'$para');
+                        z.angularBind('${s.name.toString + "_dataType"}',${s.name.toString + "_dataType"},'$para');
+                        z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$para');
+                        """
+                      }
 
-        }
-        case _ =>
-      }
-      for (para <- paraIDs) {
-        unbind ++=
-            s"""z.angularUnbind('${s.name.toString + "_name"}','$para');
-                z.angularUnbind('${s.name.toString + "_dataType"}','$para');
-                z.angularUnbind('${s.name.toString + "_nullable"}','$para');"""
-      }
-    }
+                    }
+                    case _ =>
+                  }
+                  for (para <- paraIDs) {
+                    unbind ++=
+                        s"""z.angularUnbind('${s.name.toString + "_name"}','$para');
+                        z.angularUnbind('${s.name.toString + "_dataType"}','$para');
+                        z.angularUnbind('${s.name.toString + "_nullable"}','$para');"""
+                  }
+                }
 
-    s"""%angular
-            $tableStyle
-            <table cellspacing="0" rules="all" id="SchemaSelector" style="border-collapse: collapse;">
-                <tr>
-                     <th text-align:center">Inferred from data</th>
-                     <th text-align:center">[Optional] User specified</th>
-                <tr>
-                <tr>
-                    <th style="width:120px;text-align:center">Column Name</th>
-                    <th style="width:60px;text-align:center">Type</th>
-                    <th style="width:60px;text-align:center">Nullable</th>
-                    <th style="width:120px;text-align:center">Column Name</th>
-                    <th style="width:60px;text-align:center">Type</th>
-                    <th style="width:60px;text-align:center">Nullable</th>
-                </tr>
-                ${cols.toString}
-            </table>
-            <br/>
-            ${
-      renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
-        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
-    }}
+                s"""%angular
+                    $tableStyle
+                    <table cellspacing="0" rules="all" id="SchemaSelector" style="border-collapse: collapse;">
+                        <tr>
+                             <th style="width:240px;text-align:center" colspan="3">Inferred from data</th>
+                             <th style="width:240px;text-align:center" colspan="3">[Optional] User specified</th>
+                        <tr>
+                        <tr>
+                            <th style="width:120px;text-align:center">Column Name</th>
+                            <th style="width:60px;text-align:center">Type</th>
+                            <th style="width:60px;text-align:center">Nullable</th>
+                            <th style="width:120px;text-align:center">Column Name</th>
+                            <th style="width:60px;text-align:center">Type</th>
+                            <th style="width:60px;text-align:center">Nullable</th>
+                        </tr>
+                        ${cols.toString}
+                    </table>
+                    <br/>
+                    ${
+                  renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString),
+                    Some(confirmMessage), Some(confirmOnClickFunction)),
+                    AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
+                }
         """
+    }
   }
 
   /**
@@ -583,5 +590,23 @@ object QueryBuilder {
       }
     }
     "(" + p.toList.mkString(",") + ")"
+  }
+
+  /**
+   * Combines all parameters and options string to generate the final query to be executed for creation
+   * of the external table.
+   * @param z Zeppelin context
+   * @param df Dataframe
+   * @return
+   */
+  def getCreateExternalTableQuery(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
+    "CREATE EXTERNAL TABLE IF NOT EXISTS " + z.get("dataset") + getProjectionFromScehma(df, z) +
+        " USING " + z.get("fileFormat").asInstanceOf[String] +
+        " OPTIONS ( " + s"""path '${z.get("path")}' """ +
+          (getFileFormatOptionsForSnappy(z.get("fileFormat").asInstanceOf[String], z) match {
+            case "" => ""
+            case x: String => "," + x
+          }) +
+        " )"
   }
 }
