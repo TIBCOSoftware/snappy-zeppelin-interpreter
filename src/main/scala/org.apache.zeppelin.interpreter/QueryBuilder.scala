@@ -130,6 +130,7 @@ object QueryBuilder {
   private val dlColon = ":"
   private val dlColonSlash = dlColon + dlSlash + dlSlash
   private val dlAtRate = "@"
+  private val default_unknown = "DEFAULT_UNKNOWN"
 
   // AngularJS related element properties and functions
   private lazy val tableStyle =
@@ -194,7 +195,7 @@ object QueryBuilder {
   case class ParamText(
       name: String,
       desc: String,
-      default: String,
+      default: String = default_unknown,
       opts: Option[List[(String, String)]] = None,
       secure: Option[String] = None)
 
@@ -222,17 +223,18 @@ object QueryBuilder {
    * Utility function to render list of parameters using AngularJS controls.
    * @param pList List of ParamText
    * @param paraIDs
-   * @param executeNextParagraph
    * @return
    */
-  def renderParamList(pList: List[ParamText], paraIDs: List[String], executeNextParagraph: Boolean = false): String = {
+  def renderParamList(pList: List[ParamText], paraIDs: List[String]): String = {
     val s = new StringBuilder()
     val bind = new StringBuilder()
     val unbind = new StringBuilder()
 
     pList match {
-      case Nil => "Current selection does not need any parameters to be initialized."
-      case _ => for (p <- pList) {
+      case Nil =>
+        s"""%angular
+            <h4 style="color:blue"> Current selection does not need any parameters to be initialized.</h4>""".stripMargin
+      case l : List[ParamText] => for (p <- l) {
         p.opts match {
           case Some(x) =>
             s ++=
@@ -333,13 +335,13 @@ object QueryBuilder {
       ParamText(csv_charset, csv_charset, "UTF-8"),
       ParamText(csv_quote, csv_quote, "\""),
       ParamText(csv_escape, csv_escape, "\\"),
-      ParamText(csv_comment, csv_comment, ""),
+      ParamText(csv_comment, csv_comment),
       ParamText(csv_header, csv_header, "false", Some(booleanOpts)),
       ParamText(csv_inferSchema, csv_inferSchema, "false", Some(booleanOpts)),
       ParamText(csv_mode, csv_mode, "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"), ("PERMISSIVE", "PERMISSIVE")))),
       ParamText(csv_ignoreLeadingWhiteSpace, csv_ignoreLeadingWhiteSpace, "false", Some(booleanOpts)),
       ParamText(csv_ignoreTrailingWhiteSpace, csv_ignoreTrailingWhiteSpace, "false", Some(booleanOpts)),
-      ParamText(csv_nullValue, csv_nullValue, ""),
+      ParamText(csv_nullValue, csv_nullValue),
       ParamText(csv_nanValue, csv_nanValue, "NaN"),
       ParamText(csv_positiveInf, csv_positiveInf, "Inf"),
       ParamText(csv_negativeInf, csv_negativeInf, "-Inf"),
@@ -353,7 +355,7 @@ object QueryBuilder {
           ("snappy", "snappy")
         ))),
       ParamText(csv_dateFormat, csv_dateFormat, "yyyy-MM-dd"),
-      ParamText(csv_timestampFormat, csv_timestampFormat, s"yyyy-MM-dd\\'T\\'HH:mm:ss.SSSZZ"),
+      ParamText(csv_timestampFormat, csv_timestampFormat),//FIXME : default parsing issue yyyy-MM-dd'T'HH:mm:ss.SSSZZ
       ParamText(csv_maxColumns, csv_maxColumns, "20480"),
       ParamText(csv_maxCharsPerColumn, csv_maxCharsPerColumn, "-1"),
       ParamText(csv_escapeQuotes, csv_escapeQuotes, "true", Some(booleanOpts)),
@@ -395,13 +397,19 @@ object QueryBuilder {
    */
   def getFileFormats: List[(String, String)] = fileFormats
 
+  /**
+   * Get the string that needs to be passed as the options field in Query being submitted to spark.read.
+   * @param ff file format identifier string
+   * @param z Zeppelin Context
+   * @return
+   */
   def getFileFormatOptionsForSparkReader(ff: String, z: ZeppelinContext): Predef.Map[String, String] = {
     val opts = mutable.Map.empty[String, String]
     getFileFormatParams(ff) match {
       case Nil =>
       case x: List[ParamText] =>
         x.foreach(p => z.angular(p.name).asInstanceOf[String] match {
-          case null => opts += (p.name -> p.default)
+          case `default_unknown` => opts += (p.name -> p.default)
           case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
         })
     }
@@ -420,8 +428,8 @@ object QueryBuilder {
       case Nil =>
       case x : List[ParamText] => x.foreach(p =>
          z.angular(p.name).asInstanceOf[String] match {
-          case null => opts += s"""${p.name} '${p.default}'"""
-          case _ => opts += s"""${p.name} '${z.angular(p.name).asInstanceOf[String]}'"""
+          case `default_unknown` => opts += s"${p.name} '${p.default}'"
+          case _ => opts += s"${p.name} '${z.angular(p.name).asInstanceOf[String]}'"
         })
       }
     opts.toList.mkString(",")
@@ -491,8 +499,22 @@ object QueryBuilder {
   }
 
   /**
+   * This function became necessary to tackle the inconsistent reponse type being derived from Zeppelin context.
+   * @param v
+   * @tparam T
+   * @return
+   */
+  private def typeToBool[T](v: T) = v match {
+    case _: Boolean => v.asInstanceOf[Boolean]
+    case _ => v.asInstanceOf[String] match {
+      case "true" => true
+      case _ => false
+    }
+  }
+
+  /**
    * Generate a table for existing schema and text boxes that allow user to update schema before final query formation.
-   * @param z Zepplin Context
+   * @param z Zeppelin Context
    * @param df Data Frame from which schema will be inferred.
    * @param paraIDs List of Zeppelin notebook paragraphs with which these variables should be bound.
    * @return
@@ -505,8 +527,8 @@ object QueryBuilder {
         val bind = new StringBuilder()
         val unbind = new StringBuilder()
         for (s <- df.schema) {
-          z.angular(s.name).asInstanceOf[String] match {
-            case "true" => {
+          typeToBool(z.angular(s.name)) match {
+            case true => {
               cols ++=
                   s"""
                     <tr>
@@ -600,13 +622,17 @@ object QueryBuilder {
    * @return
    */
   def getCreateExternalTableQuery(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
-    "CREATE EXTERNAL TABLE IF NOT EXISTS " + z.get("dataset") + getProjectionFromScehma(df, z) +
-        " USING " + z.get("fileFormat").asInstanceOf[String] +
-        " OPTIONS ( " + s"""path '${z.get("path")}' """ +
+    val space = " "
+    "CREATE EXTERNAL TABLE" + space +
+        z.get("dataset") + space +
+        getProjectionFromScehma(df, z) + space +
+        "USING" + space +
+        z.get("fileFormat").asInstanceOf[String] + space +
+        "OPTIONS (" + s"""path '${z.get("path")}' """ +
           (getFileFormatOptionsForSnappy(z.get("fileFormat").asInstanceOf[String], z) match {
             case "" => ""
             case x: String => "," + x
           }) +
-        " )"
+        ")"
   }
 }
