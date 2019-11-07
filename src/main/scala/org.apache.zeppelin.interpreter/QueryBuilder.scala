@@ -83,9 +83,11 @@ object QueryBuilder {
   lazy val json = "JSON"
   lazy val orc = "ORC"
   lazy val avro = "Avro"
+  lazy val avro_source = "com.databricks.spark.avro"
 
   lazy val xml = "XML"
   lazy val xml_rowtag = "rowTag"
+  lazy val xml_source = "com.databricks.spark.xml"
 
   lazy val txt = "Text"
   lazy val txt_header = "text_header"
@@ -130,7 +132,9 @@ object QueryBuilder {
   private val dlColon = ":"
   private val dlColonSlash = dlColon + dlSlash + dlSlash
   private val dlAtRate = "@"
-  private val default_unknown = "DEFAULT_UNKNOWN"
+  private val system_default = "system_default"
+  private val html = "html"
+  private val query = "query"
 
   // AngularJS related element properties and functions
   private lazy val tableStyle =
@@ -195,7 +199,7 @@ object QueryBuilder {
   case class ParamText(
       name: String,
       desc: String,
-      default: String = default_unknown,
+      default: String = system_default,
       opts: Option[List[(String, String)]] = None,
       secure: Option[String] = None)
 
@@ -229,19 +233,21 @@ object QueryBuilder {
     val s = new StringBuilder()
     val bind = new StringBuilder()
     val unbind = new StringBuilder()
-
+    val labelWidth = 250
     pList match {
       case Nil =>
         s"""%angular
-            <h4 style="color:blue"> Current selection does not need any parameters to be initialized.</h4>""".stripMargin
+            <h4 style="color:blue;font-style:italic;">
+            Current selection does not need any parameters to be initialized.</h4>""".stripMargin
       case l : List[ParamText] => for (p <- l) {
         p.opts match {
           case Some(x) =>
             s ++=
-                s"""<mat-form-field><label for="select${p.name}" style="width:200px">${p.name}</label>
+                s"""<mat-form-field><label for="select${p.name}" style="width:${labelWidth}px">${p.name}
+                    <span style="font-style:italic;" >(default: ${p.default})</span></label>
                     <select matNativeControl required ng-model="${p.name}">"""
             for (m <- x)
-              s ++= s"""<option value="${m._1}" ${if (m._2 == p.default) "selected"} >${m._2}</option>"""
+              s ++= s"""<option value="${m._1}">${m._2}</option>""" //FIXME:Default using "selected" not working.
             s ++= s"""</select></mat-form-field><br/>"""
             for (para <- paraIDs) {
               bind ++= s"""z.angularBind('${p.name}',${p.name},'$para');"""
@@ -250,7 +256,7 @@ object QueryBuilder {
 
           case _ =>
             s ++=
-                s"""<label style="width:200px" for="${p.name}">${p.desc}</label> <input type=${
+                s"""<label style="width:${labelWidth}px" for="${p.name}">${p.desc}</label> <input type=${
                   p.secure match {
                     case Some(y) => y
                     case _ => "text"
@@ -333,8 +339,8 @@ object QueryBuilder {
     case `csv` => List(
       ParamText(csv_delimiter, csv_delimiter, ","),
       ParamText(csv_charset, csv_charset, "UTF-8"),
-      ParamText(csv_quote, csv_quote, "\""),
-      ParamText(csv_escape, csv_escape, "\\"),
+      ParamText(csv_quote, csv_quote,system_default),
+      ParamText(csv_escape, csv_escape,system_default),
       ParamText(csv_comment, csv_comment),
       ParamText(csv_header, csv_header, "false", Some(booleanOpts)),
       ParamText(csv_inferSchema, csv_inferSchema, "false", Some(booleanOpts)),
@@ -345,9 +351,8 @@ object QueryBuilder {
       ParamText(csv_nanValue, csv_nanValue, "NaN"),
       ParamText(csv_positiveInf, csv_positiveInf, "Inf"),
       ParamText(csv_negativeInf, csv_negativeInf, "-Inf"),
-      ParamText(csv_compressionCodec, csv_compressionCodec + "(or codec)", "none",
-        Some(List(("none", "none"),
-          ("uncompressed", "uncompressed"),
+      ParamText(csv_compressionCodec, csv_compressionCodec + "(or codec)", "uncompressed",
+        Some(List(("uncompressed", "uncompressed"),
           ("bzip2", "bzip2"),
           ("deflate", "deflate"),
           ("gzip", "gzip"),
@@ -409,7 +414,8 @@ object QueryBuilder {
       case Nil =>
       case x: List[ParamText] =>
         x.foreach(p => z.angular(p.name).asInstanceOf[String] match {
-          case `default_unknown` => opts += (p.name -> p.default)
+          case `system_default` =>
+          case null => opts += (p.name -> p.default)
           case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
         })
     }
@@ -428,7 +434,8 @@ object QueryBuilder {
       case Nil =>
       case x : List[ParamText] => x.foreach(p =>
          z.angular(p.name).asInstanceOf[String] match {
-          case `default_unknown` => opts += s"${p.name} '${p.default}'"
+          case `system_default` =>
+          case null => opts += s"""${p.name} '${p.default}'"""
           case _ => opts += s"${p.name} '${z.angular(p.name).asInstanceOf[String]}'"
         })
       }
@@ -499,7 +506,7 @@ object QueryBuilder {
   }
 
   /**
-   * This function became necessary to tackle the inconsistent reponse type being derived from Zeppelin context.
+   * This function became necessary to tackle the inconsistent response type being derived from Zeppelin context.
    * @param v
    * @tparam T
    * @return
@@ -623,11 +630,12 @@ object QueryBuilder {
    */
   def getCreateExternalTableQuery(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
     val space = " "
-    "CREATE EXTERNAL TABLE" + space +
-        z.get("dataset") + space +
-        getProjectionFromScehma(df, z) + space +
-        "USING" + space +
-        z.get("fileFormat").asInstanceOf[String] + space +
+    "CREATE EXTERNAL TABLE" + space + z.get("dataset").asInstanceOf[String] + space + "USING" + space +
+        (z.get("fileFormat").asInstanceOf[String] match {
+          case `avro` => avro_source
+          case `xml` => xml_source
+          case f => f
+        }) + space +
         "OPTIONS (" + s"""path '${z.get("path")}' """ +
           (getFileFormatOptionsForSnappy(z.get("fileFormat").asInstanceOf[String], z) match {
             case "" => ""
