@@ -123,7 +123,7 @@ object QueryBuilder {
   lazy val adls_domain = ".blob.core.windows.net"
 
   // Some reusable strings
-  private lazy val fileFormats = List(("default", "select file format"), (csv, csv), (prq, prq), (json, json), (orc, orc), (avro, avro), (xml, xml), (txt, txt))
+  private lazy val fileFormats = List((csv, csv), (prq, prq), (json, json), (orc, orc), (avro, avro), (xml, xml), (txt, txt))
   private lazy val booleanOpts = List(("true", "true"), ("false", "false"))
   private lazy val sources = List((hdfs, "Hadoop File System"), (aws, "Amazon S3"), (lfs, "Local File System"),
     (gcs, "Google Cloud Storage"), (adls, "Microsoft Azure Store"))
@@ -137,6 +137,7 @@ object QueryBuilder {
   private val query = "query"
 
   // AngularJS related element properties and functions
+  private lazy val selectAll = "selectAll"
   private lazy val tableStyle =
     s"""
      <style>
@@ -474,19 +475,24 @@ object QueryBuilder {
       }
     }
 
+    for (para <- paraIDs) {
+      bindCheckboxes ++= s"""z.angularBind('${selectAll}',${selectAll},'$para');"""
+      unbind ++= s"""z.angularUnbind('${selectAll}','$para');"""
+    }
+
     val fnName = "updateAll"
-    val updateFunction =
-      s"""
-         |function $fnName(select){
-         |  var grid = document.getElementById("$jsTableName");
-         |  var checkBoxes = grid.getElementsByTagName("INPUT");
-         |  for (var i = 0; i < checkBoxes.length; i++) {
-         |   checkBoxes[i].checked = select;
-         |  }
-         |}""".stripMargin
+    val updateAllFunction =
+      s"""function $fnName(select){
+           var checkBoxes = document.getElementById("$jsTableName").getElementsByTagName("INPUT");
+           for (var i = 0; i < checkBoxes.length; i++) {
+            checkBoxes[i].checked = select;
+           }
+         }"""
 
     s"""%angular
         $tableStyle
+        <input type="checkbox" ng-model="${selectAll}">Select All</input>
+        <h4> OR select a subset using the following table. </h4>
         <table cellspacing="0" rules="all" id=$jsTableName style="border-collapse: collapse;">
         <tr>
             <th style="width:120px;text-align:center">Import</th>
@@ -498,9 +504,8 @@ object QueryBuilder {
         </table>
         <br/>
         ${
-      renderButtons(List(AngularButton(btnSubmit, "CheckAll", btnPrimary, None, Some(fnName + "(true)"), Some(updateFunction)),
-        AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
-        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), Some(fnName + "(false)"), Some(updateFunction))))
+      renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
+        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), Some(fnName + "(false)"), Some(updateAllFunction))))
     }
         """
   }
@@ -534,8 +539,8 @@ object QueryBuilder {
         val bind = new StringBuilder()
         val unbind = new StringBuilder()
         for (s <- df.schema) {
-          typeToBool(z.angular(s.name)) match {
-            case true => {
+          (typeToBool(z.angular(s.name)),typeToBool(z.angular(selectAll))) match {
+            case (true,_) | (_,true) => {
               cols ++=
                   s"""
                     <tr>
@@ -563,9 +568,8 @@ object QueryBuilder {
                         z.angularBind('${s.name.toString + "_nullable"}',${s.name.toString + "_nullable"},'$para');
                         """
                       }
-
                     }
-                    case _ =>
+                    case (_,_) =>
                   }
                   for (para <- paraIDs) {
                     unbind ++=
