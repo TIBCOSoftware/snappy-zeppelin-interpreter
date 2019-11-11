@@ -70,7 +70,7 @@ object QueryBuilder {
   lazy val csv_nanValue = "nanValue"
   lazy val csv_positiveInf = "positiveInf"
   lazy val csv_negativeInf = "negativeInf"
-  lazy val csv_compressionCodec = "compressionCodec"
+  lazy val csv_compressionCodec = "compression"
   lazy val csv_dateFormat = "dateFormat"
   lazy val csv_timestampFormat = "timestampFormat"
   lazy val csv_maxColumns = "maxColumns"
@@ -80,8 +80,27 @@ object QueryBuilder {
   lazy val csv_quoteAll = "quoteAll"
 
   lazy val prq = "Parquet"
+  lazy val prq_merge_schema = "mergeSchema"
+  lazy val prq_compression = "compression"
+
   lazy val json = "JSON"
+  lazy val json_sampling_ratio = "samplingRatio"
+  lazy val json_primitivesAsString = "primitivesAsString"
+  lazy val json_prefersDecimal = "prefersDecimal"
+  lazy val json_allowComments = "allowComments"
+  lazy val json_allowUnquotedFieldNames = "allowUnquotedFieldNames"
+  lazy val json_allowSingleQuotes = "allowSingleQuotes"
+  lazy val json_allowNumericLeadingZeros = "allowNumericLeadingZeros"
+  lazy val json_allowNonNumericNumbers = "allowNonNumericNumbers"
+  lazy val json_allowBackslashEscapingAnyCharacter = "allowBackslashEscapingAnyCharacter"
+  lazy val json_compressionCodec = "compression"
+  lazy val json_parseMode = "parseMode"
+  lazy val json_dateFormat = "dateFormat"
+  lazy val json_timeStampFormat = "timeStampFormat"
+
   lazy val orc = "ORC"
+  lazy val orc_compressionCodec = "compression"
+
   lazy val avro = "Avro"
   lazy val avro_source = "com.databricks.spark.avro"
 
@@ -138,6 +157,7 @@ object QueryBuilder {
 
   // AngularJS related element properties and functions
   private lazy val selectAll = "selectAll"
+  //FIXME : overflow parameter for tables not reflecting when set here.
   private lazy val tableStyle =
     s"""
      <style>
@@ -146,6 +166,9 @@ object QueryBuilder {
       }
       th, td {
         padding: 2px;
+      }
+      table{
+        overflow : auto;
       }
      </style>"""
 
@@ -345,7 +368,9 @@ object QueryBuilder {
       ParamText(csv_comment, csv_comment),
       ParamText(csv_header, csv_header, "false", Some(booleanOpts)),
       ParamText(csv_inferSchema, csv_inferSchema, "false", Some(booleanOpts)),
-      ParamText(csv_mode, csv_mode, "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"), ("FAILFAST", "FAILFAST"), ("PERMISSIVE", "PERMISSIVE")))),
+      ParamText(csv_mode, csv_mode, "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"),
+        ("FAILFAST", "FAILFAST"),
+        ("PERMISSIVE", "PERMISSIVE")))),
       ParamText(csv_ignoreLeadingWhiteSpace, csv_ignoreLeadingWhiteSpace, "false", Some(booleanOpts)),
       ParamText(csv_ignoreTrailingWhiteSpace, csv_ignoreTrailingWhiteSpace, "false", Some(booleanOpts)),
       ParamText(csv_nullValue, csv_nullValue),
@@ -368,9 +393,41 @@ object QueryBuilder {
       ParamText(csv_maxMalformedLogPerPartition, csv_maxMalformedLogPerPartition, "10"),
       ParamText(csv_quoteAll, csv_quoteAll, "false", Some(booleanOpts))
     )
+    case `prq` => List(ParamText(prq_merge_schema,"Merge Schema","false",Some(booleanOpts)),
+      ParamText(prq_compression,prq_compression,"uncompressed",
+        Some(List(("uncompressed","uncompressed"),
+          ("snappy", "snappy"),
+          ("gzip", "gzip"),
+          ("lzo","lzo")
+        ))))
     case `txt` => List(ParamText(txt_header, "Header in Text file", "true", Some(booleanOpts)),
       ParamText(txt_delimiter, "Delimiter in Text File", ","))
     case `xml` => List(ParamText(xml_rowtag, "Row Tag in XML file", "breakfast_menu"))
+    case `json` => List(ParamText(json_sampling_ratio,json_sampling_ratio,"1.0"),
+      ParamText(json_primitivesAsString,json_primitivesAsString,"false",Some(booleanOpts)),
+      ParamText(json_prefersDecimal,json_prefersDecimal,"false",Some(booleanOpts)),
+      ParamText(json_allowComments,json_allowComments,"false",Some(booleanOpts)),
+      ParamText(json_allowUnquotedFieldNames,json_allowUnquotedFieldNames,"false",Some(booleanOpts)),
+      ParamText(json_allowSingleQuotes,json_allowSingleQuotes,"true",Some(booleanOpts)),
+      ParamText(json_allowBackslashEscapingAnyCharacter,json_allowBackslashEscapingAnyCharacter,"false",Some(booleanOpts)),
+      ParamText(json_compressionCodec, json_compressionCodec, "uncompressed",
+        Some(List(("uncompressed", "uncompressed"),
+          ("bzip2", "bzip2"),
+          ("deflate", "deflate"),
+          ("gzip", "gzip"),
+          ("lz4", "lz4"),
+          ("snappy", "snappy")
+        ))),
+      ParamText(json_dateFormat,json_dateFormat),
+      ParamText(json_timeStampFormat,json_timeStampFormat)
+    )
+    case `orc` => List(ParamText(orc_compressionCodec,orc_compressionCodec,"snappy",
+      Some(List(("snappy","snappy"),
+        ("snappy", "snappy"),
+        ("uncompressed","uncompressed"),
+        ("zlib", "zlib"),
+        ("lzo","lzo")
+      ))))
     case _ => List()
   }
 
@@ -483,7 +540,7 @@ object QueryBuilder {
     val fnName = "updateAll"
     val updateAllFunction =
       s"""function $fnName(select){
-           var checkBoxes = document.getElementById("$jsTableName").getElementsByTagName("INPUT");
+           var checkBoxes = document.getElementsByTagName("INPUT");
            for (var i = 0; i < checkBoxes.length; i++) {
             checkBoxes[i].checked = select;
            }
@@ -493,6 +550,7 @@ object QueryBuilder {
         $tableStyle
         <input type="checkbox" ng-model="${selectAll}">Select All</input>
         <h4> OR select a subset using the following table. </h4>
+        <div style="height:300px;overflow:auto">
         <table cellspacing="0" rules="all" id=$jsTableName style="border-collapse: collapse;">
         <tr>
             <th style="width:120px;text-align:center">Import</th>
@@ -502,6 +560,8 @@ object QueryBuilder {
         </tr>
         ${s.toString}
         </table>
+        </div>
+        </br>
         <br/>
         ${
       renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
@@ -581,6 +641,7 @@ object QueryBuilder {
 
                 s"""%angular
                     $tableStyle
+                    <div style="height:300px;overflow:auto">
                     <table cellspacing="0" rules="all" id="SchemaSelector" style="border-collapse: collapse;">
                         <tr>
                              <th style="width:240px;text-align:center" colspan="3">Inferred from data</th>
@@ -596,6 +657,7 @@ object QueryBuilder {
                         </tr>
                         ${cols.toString}
                     </table>
+                    </div>
                     <br/>
                     ${
                   renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString),
