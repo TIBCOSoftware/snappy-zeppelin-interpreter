@@ -167,12 +167,10 @@ object QueryBuilder {
       th, td {
         padding: 2px;
       }
-      table{
-        overflow : auto;
-      }
      </style>"""
 
   private lazy val confirmMessage = s"""confirm('Values updated successfully.')"""
+  private lazy val resetMessage = s"""confirm('Values being reset. Restarting in a new copy of this notebook recommended.')"""
   private lazy val confirmOnClickFunction =
     s"""
        |function confirm(message){
@@ -418,6 +416,9 @@ object QueryBuilder {
           ("lz4", "lz4"),
           ("snappy", "snappy")
         ))),
+      ParamText(json_parseMode, json_parseMode, "DROPMALFORMED", Some(List(("DROPMALFORMED", "DROPMALFORMED"),
+        ("FAILFAST", "FAILFAST"),
+        ("PERMISSIVE", "PERMISSIVE")))),
       ParamText(json_dateFormat,json_dateFormat),
       ParamText(json_timeStampFormat,json_timeStampFormat)
     )
@@ -565,7 +566,7 @@ object QueryBuilder {
         <br/>
         ${
       renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),
-        AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), Some(fnName + "(false)"), Some(updateAllFunction))))
+        AngularButton(btnReset, "Reset", btnDanger, Some(unbind.toString), Some(fnName + "(false)"), Some(updateAllFunction))))
     }
         """
   }
@@ -635,7 +636,8 @@ object QueryBuilder {
                     unbind ++=
                         s"""z.angularUnbind('${s.name.toString + "_name"}','$para');
                         z.angularUnbind('${s.name.toString + "_dataType"}','$para');
-                        z.angularUnbind('${s.name.toString + "_nullable"}','$para');"""
+                        z.angularUnbind('${s.name.toString + "_nullable"}','$para');
+                        z.angularUnbind('${selectAll}','$para')"""
                   }
                 }
 
@@ -662,7 +664,7 @@ object QueryBuilder {
                     ${
                   renderButtons(List(AngularButton(btnSubmit, "Confirm", btnSuccess, Some(bind.toString),
                     Some(confirmMessage), Some(confirmOnClickFunction)),
-                    AngularButton(btnSubmit, "Reset", btnDanger, Some(unbind.toString), None, None)))
+                    AngularButton(btnReset, "Reset", btnDanger, Some(unbind.toString), Some(resetMessage), Some(confirmOnClickFunction))))
                 }
         """
     }
@@ -692,10 +694,11 @@ object QueryBuilder {
    * of the external table.
    * @param z Zeppelin context
    * @param df Dataframe
-   * @return
+   * @return The final query that will be executed for creation of the external table representing the data.
    */
   def getCreateExternalTableQuery(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
     val space = " "
+    // TODO: Confirm the selective projection creation from file formats and apply it here.
     "CREATE EXTERNAL TABLE" + space + z.get("dataset").asInstanceOf[String] + space + "USING" + space +
         (z.get("fileFormat").asInstanceOf[String] match {
           case `avro` => avro_source
