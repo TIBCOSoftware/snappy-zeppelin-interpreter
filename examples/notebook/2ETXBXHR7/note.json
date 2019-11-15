@@ -1,0 +1,717 @@
+{
+  "paragraphs": [
+    {
+      "text": "%angular\n\u003chtml\u003e\nTODO\nAdd Manage connectors\nadd other note book examples\nUpdate following links to point to correct note books. \u003cbr/\u003e\n\u003ch3\u003e Objective \u003c/h3\u003e\nWork with data sets sourced from files hosted on \u003cb\u003eLocal File System\u003c/b\u003e.\n\u003cbr/\u003e\n\n\n\u003ch3\u003e Examples \u003c/h3\u003e\n\u003cb\u003e\u003ci\u003eLocal Files System\u003c/b\u003e\u003c/i\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ENZ8ZCSQ\" target\u003d\"_blank\"\u003eHadoop (HDFS)\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ERG19YWQ\" target\u003d\"_blank\"\u003eAmazon S3 (AWS)\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ERHX1PHD\" target\u003d\"_blank\"\u003eGoogle Cloud (GCS)\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/2ERR5AP47\" target\u003d\"_blank\"\u003eMicrosoft Azure (ADLS)\u003c/a\u003e\n\n\u003ch3\u003e References \u003c/h3\u003e\n\u003ca href\u003d\"https://tibco-computedb.readthedocs.io/en/enterprise_docv1.1.1/?id\u003d0\" target\u003d\"_blank\"\u003eProduct Documentation\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/quickstart\" target\u003d\"_blank\"\u003eQuick Start Notebook\u003c/a\u003e\n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:8080/#/notebook/snappydata\" target\u003d\"_blank\"\u003eProduct Overview\u003c/a\u003e \n\u003cbr\u003e\n\u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eCluster Dashboard\u003c/a\u003e\n\u003cbr\u003e\n\u003cdiv ng-repeat\u003d\"n in [].constructor(250) track by $index\"\u003e\n    \u003cbr\u003e\n\u003c/div\u003e\n\u003c/html\u003e",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 21:56:11.847",
+      "config": {
+        "colWidth": 2.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined",
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573831526913_-1944871138",
+      "id": "20191115-205526_1127237850",
+      "dateCreated": "2019-11-15 20:55:26.913",
+      "dateStarted": "2019-11-15 21:56:11.848",
+      "dateFinished": "2019-11-15 21:56:11.853",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Prerequisites",
+      "text": "{\n    println(s\"\"\"%angular\n    \u003cul\u003e\n      \u003cb\u003e\u003ci\u003e\n      \u003cli\u003eEnsure the cluster is running using \u003ca href\u003d\"http://localhost:5050\" target\u003d\"_blank\"\u003eComputeDB Cluster Monitor\u003c/a\u003e\u003c/li\u003e\n      \u003cli\u003eEnsure you have the necessary access credentials/permissions for data access.\u003c/li\u003e\n      \u003cli\u003ePlease use the clear output button above to flush any information populated in previous runs of the notebook.\u003c/li\u003e\n      \u003c/b\u003e\u003c/i\u003e\n    \u003c/ul\u003e  \n    \"\"\")\n    // To Unregister the following Hook use :\n    z.unregisterHook(\"pre_exec\",\"spark\")\n    z.registerHook(\"pre_exec\", s\"\"\"\n    import scala.collection.mutable\n    import org.apache.zeppelin.spark.SparkZeppelinContext\n    import org.apache.spark.sql._\n    import scala.collection.mutable.{ListBuffer, Map}\n    import org.apache.spark.SparkContext\n\n    object QueryBuilder{\n      // File formats\n      lazy val csv \u003d \"CSV\"\n      lazy val csv_delimiter \u003d \"delimiter\"\n      lazy val csv_charset \u003d \"charset\"\n      lazy val csv_quote \u003d \"quote\"\n      lazy val csv_escape \u003d \"escape\"\n      lazy val csv_comment \u003d \"comment\"\n      lazy val csv_header \u003d \"header\"\n      lazy val csv_inferSchema \u003d \"inferSchema\"\n      lazy val csv_mode \u003d \"mode\"\n      lazy val csv_ignoreLeadingWhiteSpace \u003d \"ignoreLeadingWhiteSpace\"\n      lazy val csv_ignoreTrailingWhiteSpace \u003d \"ignoreTrailingWhiteSpace\"\n      lazy val csv_nullValue \u003d \"nullValue\"\n      lazy val csv_nanValue \u003d \"nanValue\"\n      lazy val csv_positiveInf \u003d \"positiveInf\"\n      lazy val csv_negativeInf \u003d \"negativeInf\"\n      lazy val csv_compressionCodec \u003d \"compression\"\n      lazy val csv_dateFormat \u003d \"dateFormat\"\n      lazy val csv_timestampFormat \u003d \"timestampFormat\"\n      lazy val csv_maxColumns \u003d \"maxColumns\"\n      lazy val csv_maxCharsPerColumn \u003d \"maxCharsPerColumn\"\n      lazy val csv_escapeQuotes \u003d \"escapeQuotes\"\n      lazy val csv_maxMalformedLogPerPartition \u003d \"maxMalformedLogPerPartition\"\n      lazy val csv_quoteAll \u003d \"quoteAll\"\n    \n      lazy val prq \u003d \"Parquet\"\n      lazy val prq_merge_schema \u003d \"mergeSchema\"\n      lazy val prq_compression \u003d \"compression\"\n    \n      lazy val json \u003d \"JSON\"\n      lazy val json_sampling_ratio \u003d \"samplingRatio\"\n      lazy val json_primitivesAsString \u003d \"primitivesAsString\"\n      lazy val json_prefersDecimal \u003d \"prefersDecimal\"\n      lazy val json_allowComments \u003d \"allowComments\"\n      lazy val json_allowUnquotedFieldNames \u003d \"allowUnquotedFieldNames\"\n      lazy val json_allowSingleQuotes \u003d \"allowSingleQuotes\"\n      lazy val json_allowNumericLeadingZeros \u003d \"allowNumericLeadingZeros\"\n      lazy val json_allowNonNumericNumbers \u003d \"allowNonNumericNumbers\"\n      lazy val json_allowBackslashEscapingAnyCharacter \u003d \"allowBackslashEscapingAnyCharacter\"\n      lazy val json_compressionCodec \u003d \"compression\"\n      lazy val json_parseMode \u003d \"parseMode\"\n      lazy val json_dateFormat \u003d \"dateFormat\"\n      lazy val json_timeStampFormat \u003d \"timeStampFormat\"\n    \n      lazy val orc \u003d \"ORC\"\n      lazy val orc_compressionCodec \u003d \"compression\"\n    \n      lazy val avro \u003d \"Avro\"\n      lazy val avro_source \u003d \"com.databricks.spark.avro\"\n    \n      lazy val xml \u003d \"XML\"\n      lazy val xml_rowtag \u003d \"rowTag\"\n      lazy val xml_source \u003d \"com.databricks.spark.xml\"\n    \n      lazy val txt \u003d \"Text\"\n      lazy val txt_header \u003d \"text_header\"\n      lazy val txt_delimiter \u003d \"text_delimiter\"\n    \n      // Data sources and parameters\n      lazy val hdfs \u003d \"hdfs\"\n      lazy val hdfs_namenode \u003d \"namenode\"\n      lazy val hdfs_path \u003d \"path\"\n    \n      lazy val aws \u003d \"AWS\"\n      lazy val aws_id \u003d \"id\"\n      lazy val aws_secret \u003d \"secret\"\n      lazy val aws_location \u003d \"location\"\n      lazy val aws_accessor \u003d \"accessor\"\n    \n      lazy val lfs \u003d \"LFS\"\n      lazy val lfs_path \u003d \"path\"\n    \n      lazy val gcs \u003d \"GCS\"\n      lazy val gcs_projID \u003d \"projectid\"\n      lazy val gcs_keyPath \u003d \"keypath\"\n      lazy val gcs_bucket \u003d \"bucket\"\n      lazy val gcs_path \u003d \"path\"\n      lazy val gcs_accessor \u003d \"gs\"\n    \n      lazy val adls \u003d \"ADLS\"\n      lazy val adls_storage \u003d \"storageAccount\"\n      lazy val adls_key \u003d \"key\"\n      lazy val adls_container \u003d \"container\"\n      lazy val adls_filepath \u003d \"filepath\"\n      lazy val adls_accessor \u003d \"wasb\"\n      lazy val adls_domain \u003d \".blob.core.windows.net\"\n    \n      // Some reusable strings\n      private lazy val fileFormats \u003d List((csv, csv), (prq, prq), (json, json), (orc, orc), (avro, avro), (xml, xml), (txt, txt))\n      private lazy val booleanOpts \u003d List((\"true\", \"true\"), (\"false\", \"false\"))\n      private lazy val sources \u003d List((hdfs, \"Hadoop File System\"), (aws, \"Amazon S3\"), (lfs, \"Local File System\"),\n        (gcs, \"Google Cloud Storage\"), (adls, \"Microsoft Azure Store\"))\n    \n      private val dlSlash \u003d \"/\"\n      private val dlColon \u003d \":\"\n      private val dlColonSlash \u003d dlColon + dlSlash + dlSlash\n      private val dlAtRate \u003d \"@\"\n      private val system_default \u003d \"system_default\"\n      private val html \u003d \"html\"\n      private val query \u003d \"query\"\n    \n      private lazy val selectAll \u003d \"selectAll\"\n      private lazy val tableStyle \u003d\n        s\\\"\\\"\\\"\n         \u003cstyle\u003e\n          table, th, td {\n            border: 1px solid black;\n          }\n          th, td {\n            padding: 2px;\n          }\n         \u003c/style\u003e\\\"\\\"\\\"\n    \n      private lazy val confirmMessage \u003d s\\\"\\\"\\\"confirm(\u0027Values updated successfully.\u0027)\\\"\\\"\\\"\n      private lazy val resetMessage \u003d s\\\"\\\"\\\"confirm(\u0027Values being reset. Restarting the workflow from cleanup stage recommended.\u0027)\\\"\\\"\\\"\n      private lazy val confirmOnClickFunction \u003d\n        s\\\"\\\"\\\"\n           |function confirm(message){\n           |  alert(message)\n           |}\n         \\\"\\\"\\\".stripMargin\n      private lazy val btnSubmit \u003d \"submit\"\n      private lazy val btnReset \u003d \"reset\"\n      private lazy val btnText \u003d \"text\"\n      private lazy val btnSuccess \u003d \"btn-success\"\n      private lazy val btnPrimary \u003d \"btn-primary\"\n      private lazy val btnDanger \u003d \"btn-danger\"\n    \n      private def renderButtons(buttons: List[AngularButton]): String \u003d {\n        val render \u003d new StringBuilder()\n        val script \u003d new StringBuilder(s\\\"\\\"\\\"\u003cscript\u003e\\\"\\\"\\\")\n        for (b \u003c- buttons) {\n          render ++\u003d s\\\"\\\"\\\"\u003cbutton type\u003d\"$${b.btType}\" class\u003d\"btn $${b.btClass}\" \\\"\\\"\\\"\n          b.btNgClick match {\n            case Some(x) \u003d\u003e render ++\u003d s\\\"\\\"\\\"ng-click \u003d \"$$x\\\"\\\"\\\"\"\n            case _ \u003d\u003e\n          }\n          (b.btOnClickSignature, b.btOnClickFunction) match {\n            case (Some(x), Some(y)) \u003d\u003e render ++\u003d s\\\"\\\"\\\"onClick \u003d \"$$x\\\"\\\"\\\"\"\n              script ++\u003d y\n            case (_, _) \u003d\u003e\n          }\n          render ++\u003d s\"\u003e$${b.btLabel}\u003c/button\u003e\u0026emsp;\"\n        }\n        script ++\u003d (s\\\"\\\"\\\"\u003c/script\u003e\\\"\\\"\\\")\n        render.toString + script.toString\n      }\n    \n      case class ParamText(\n          name: String,\n          desc: String,\n          default: String \u003d system_default,\n          opts: Option[List[(String, String)]] \u003d None,\n          secure: Option[String] \u003d None)\n    \n      case class AngularButton(\n          btType: String,\n          btLabel: String,\n          btClass: String,\n          btNgClick: Option[String] \u003d None,\n          btOnClickSignature: Option[String] \u003d None,\n          btOnClickFunction: Option[String] \u003d None\n      )\n    \n      def renderParamList(pList: List[ParamText], paraIDs: List[String]): String \u003d {\n        val s \u003d new StringBuilder()\n        val bind \u003d new StringBuilder()\n        val unbind \u003d new StringBuilder()\n        val labelWidth \u003d 250\n        pList match {\n          case Nil \u003d\u003e\n            s\\\"\\\"\\\"%angular\n                \u003ch4 style\u003d\"color:blue;font-style:italic;\"\u003e\n                Current selection does not need any parameters to be initialized.\u003c/h4\u003e\\\"\\\"\\\".stripMargin\n          case l : List[ParamText] \u003d\u003e for (p \u003c- l) {\n            p.opts match {\n              case Some(x) \u003d\u003e\n                s ++\u003d\n                    s\\\"\\\"\\\"\u003cmat-form-field\u003e\u003clabel for\u003d\"select$${p.name}\" style\u003d\"width:$${labelWidth}px\"\u003e$${p.name}\n                        \u003cspan style\u003d\"font-style:italic;\" \u003e(default: $${p.default})\u003c/span\u003e\u003c/label\u003e\n                        \u003cselect matNativeControl required ng-model\u003d\"$${p.name}\"\u003e\\\"\\\"\\\"\n                for (m \u003c- x)\n                  s ++\u003d s\\\"\\\"\\\"\u003coption value\u003d\"$${m._1}\"\u003e$${m._2}\u003c/option\u003e\\\"\\\"\\\" //FIXME:Default using \"selected\" not working.\n                s ++\u003d s\\\"\\\"\\\"\u003c/select\u003e\u003c/mat-form-field\u003e\u003cbr/\u003e\\\"\\\"\\\"\n                for (para \u003c- paraIDs) {\n                  bind ++\u003d s\\\"\\\"\\\"z.angularBind(\u0027$${p.name}\u0027,$${p.name},\u0027$$para\u0027);\\\"\\\"\\\"\n                  unbind ++\u003d s\\\"\\\"\\\"z.angularUnbind(\u0027$${p.name}\u0027,\u0027$$para\u0027);\\\"\\\"\\\"\n                }\n    \n              case _ \u003d\u003e\n                s ++\u003d\n                    s\\\"\\\"\\\"\u003clabel style\u003d\"width:$${labelWidth}px\" for\u003d\"$${p.name}\"\u003e$${p.desc}\u003c/label\u003e \u003cinput type\u003d$${\n                      p.secure match {\n                        case Some(y) \u003d\u003e y\n                        case _ \u003d\u003e \"text\"\n                      }\n                    } class\u003d\"form-control\" id\u003d\"$${p.name}\" ng-model\u003d\"$${p.name}\" ng-init\u003d\"$${p.name}\u003d\u0027$${p.default}\u0027\"}\n                    \u003c/input\u003e\u003cbr/\u003e\\\"\\\"\\\"\n                for (para \u003c- paraIDs) {\n                  bind ++\u003d s\\\"\\\"\\\"z.angularBind(\u0027$${p.name}\u0027,$${p.name},\u0027$$para\u0027);\\\"\\\"\\\"\n                  unbind ++\u003d s\\\"\\\"\\\"z.angularUnbind(\u0027$${p.name}\u0027,\u0027$$para\u0027);\\\"\\\"\\\"\n                }\n    \n            }\n          }\n    \n            s\\\"\\\"\\\"%angular\n            \u003cform class\u003d\"form-inline\"\u003e\n            \u003cdiv\u003e\n                $${s.toString}\n                $${\n              renderButtons(List(AngularButton(btnSubmit, \"Confirm\", btnSuccess, Some(bind.toString), Some(confirmMessage), Some(confirmOnClickFunction)),\n                AngularButton(btnReset, \"Reset\", btnDanger, Some(unbind.toString), None, None)))\n            }\n            \u003c/div\u003e\n            \u003c/form\u003e\n            \\\"\\\"\\\"\n        }\n      }\n    \n    \n      def getPathFromParams(z: SparkZeppelinContext, ds: String): String \u003d ds match {\n        case `hdfs` \u003d\u003e hdfs + dlColonSlash + z.angular(hdfs_namenode).asInstanceOf[String] + dlSlash +\n            z.angular(hdfs_path).asInstanceOf[String]\n        case `aws` \u003d\u003e z.angular(aws_accessor) + dlColonSlash + z.angular(aws_id).asInstanceOf[String] + dlColon +\n            z.angular(aws_secret).asInstanceOf[String] + dlAtRate + z.angular(aws_location).asInstanceOf[String]\n        case `gcs` \u003d\u003e gcs_accessor + dlColonSlash + z.angular(gcs_bucket).asInstanceOf[String] +\n            dlSlash + z.angular(gcs_path).asInstanceOf[String]\n        case `adls` \u003d\u003e adls_accessor + dlColonSlash + z.angular(adls_container).asInstanceOf[String] +\n            dlAtRate + z.angular(adls_storage).asInstanceOf[String] +\n            adls_domain + dlSlash + z.angular(adls_filepath).asInstanceOf[String]\n        case `lfs` \u003d\u003e z.angular(lfs_path).asInstanceOf[String]\n        case _ \u003d\u003e \"\"\n      }\n    \n      def configureDataSourceEnvParams(sc: org.apache.spark.SparkContext, z: SparkZeppelinContext, ds: String): Unit \u003d ds match {\n        case `gcs` \u003d\u003e\n          sc.hadoopConfiguration.set(\"fs.gs.impl\", \"com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem\")\n          sc.hadoopConfiguration.set(\"fs.AbstractFileSystem.gs.impl\", \"com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS\")\n          sc.hadoopConfiguration.set(\"fs.gs.project.id\", z.angular(gcs_projID).asInstanceOf[String])\n          sc.hadoopConfiguration.set(\"google.cloud.auth.service.account.enable\", \"true\")\n          sc.hadoopConfiguration.set(\"google.cloud.auth.service.account.json.keyfile\", z.angular(gcs_keyPath).asInstanceOf[String])\n        case `adls` \u003d\u003e\n          sc.hadoopConfiguration.set(\"fs.wasb.impl\", \"org.apache.hadoop.fs.azure.NativeAzureFileSystem\")\n          sc.hadoopConfiguration.set(\"fs.AbstractFileSystem.wasb.impl\", \"org.apache.hadoop.fs.azure.Wasb\")\n          sc.hadoopConfiguration.set(\"fs.azure\", \"org.apache.hadoop.fs.azure.NativeAzureFileSystem\")\n          sc.hadoopConfiguration.set(\"fs.azure.account.key.\" + z.angular(adls_storage).asInstanceOf[String] + adls_domain, z.angular(adls_key).asInstanceOf[String])\n        case `aws` \u003d\u003e\n          sc.hadoopConfiguration.set(\"fs.\" + z.angular(aws_accessor).asInstanceOf[String] + \".awsAccessKeyId\", z.angular(aws_id).asInstanceOf[String])\n          sc.hadoopConfiguration.set(\"fs.\" + z.angular(aws_accessor).asInstanceOf[String] + \".awsSecretAccessKey\", z.angular(aws_secret).asInstanceOf[String])\n        case _ \u003d\u003e\n      }\n    \n      def getFileFormatParams(f: String): List[ParamText] \u003d f match {\n        case `csv` \u003d\u003e List(\n          ParamText(csv_delimiter, csv_delimiter, \",\"),\n          ParamText(csv_charset, csv_charset, \"UTF-8\"),\n          ParamText(csv_quote, csv_quote,system_default),\n          ParamText(csv_escape, csv_escape,system_default),\n          ParamText(csv_comment, csv_comment),\n          ParamText(csv_header, csv_header, \"false\", Some(booleanOpts)),\n          ParamText(csv_inferSchema, csv_inferSchema, \"false\", Some(booleanOpts)),\n          ParamText(csv_mode, csv_mode, \"DROPMALFORMED\", Some(List((\"DROPMALFORMED\", \"DROPMALFORMED\"),\n            (\"FAILFAST\", \"FAILFAST\"),\n            (\"PERMISSIVE\", \"PERMISSIVE\")))),\n          ParamText(csv_ignoreLeadingWhiteSpace, csv_ignoreLeadingWhiteSpace, \"false\", Some(booleanOpts)),\n          ParamText(csv_ignoreTrailingWhiteSpace, csv_ignoreTrailingWhiteSpace, \"false\", Some(booleanOpts)),\n          ParamText(csv_nullValue, csv_nullValue),\n          ParamText(csv_nanValue, csv_nanValue, \"NaN\"),\n          ParamText(csv_positiveInf, csv_positiveInf, \"Inf\"),\n          ParamText(csv_negativeInf, csv_negativeInf, \"-Inf\"),\n          ParamText(csv_compressionCodec, csv_compressionCodec + \"(or codec)\", \"uncompressed\",\n            Some(List((\"uncompressed\", \"uncompressed\"),\n              (\"bzip2\", \"bzip2\"),\n              (\"deflate\", \"deflate\"),\n              (\"gzip\", \"gzip\"),\n              (\"lz4\", \"lz4\"),\n              (\"snappy\", \"snappy\")\n            ))),\n          ParamText(csv_dateFormat, csv_dateFormat, \"yyyy-MM-dd\"),\n          ParamText(csv_timestampFormat, csv_timestampFormat),//FIXME : default parsing issue yyyy-MM-dd\u0027T\u0027HH:mm:ss.SSSZZ\n          ParamText(csv_maxColumns, csv_maxColumns, \"20480\"),\n          ParamText(csv_maxCharsPerColumn, csv_maxCharsPerColumn, \"-1\"),\n          ParamText(csv_escapeQuotes, csv_escapeQuotes, \"true\", Some(booleanOpts)),\n          ParamText(csv_maxMalformedLogPerPartition, csv_maxMalformedLogPerPartition, \"10\"),\n          ParamText(csv_quoteAll, csv_quoteAll, \"false\", Some(booleanOpts))\n        )\n        case `prq` \u003d\u003e List(ParamText(prq_merge_schema,\"Merge Schema\",\"false\",Some(booleanOpts)),\n          ParamText(prq_compression,prq_compression,\"uncompressed\",\n            Some(List((\"uncompressed\",\"uncompressed\"),\n              (\"snappy\", \"snappy\"),\n              (\"gzip\", \"gzip\"),\n              (\"lzo\",\"lzo\")\n            ))))\n        case `txt` \u003d\u003e List(ParamText(txt_header, \"Header in Text file\", \"true\", Some(booleanOpts)),\n          ParamText(txt_delimiter, \"Delimiter in Text File\", \",\"))\n        case `xml` \u003d\u003e List(ParamText(xml_rowtag, \"Row Tag in XML file\", \"breakfast_menu\"))\n        case `json` \u003d\u003e List(ParamText(json_sampling_ratio,json_sampling_ratio,\"1.0\"),\n          ParamText(json_primitivesAsString,json_primitivesAsString,\"false\",Some(booleanOpts)),\n          ParamText(json_prefersDecimal,json_prefersDecimal,\"false\",Some(booleanOpts)),\n          ParamText(json_allowComments,json_allowComments,\"false\",Some(booleanOpts)),\n          ParamText(json_allowUnquotedFieldNames,json_allowUnquotedFieldNames,\"false\",Some(booleanOpts)),\n          ParamText(json_allowSingleQuotes,json_allowSingleQuotes,\"true\",Some(booleanOpts)),\n          ParamText(json_allowBackslashEscapingAnyCharacter,json_allowBackslashEscapingAnyCharacter,\"false\",Some(booleanOpts)),\n          ParamText(json_compressionCodec, json_compressionCodec, \"uncompressed\",\n            Some(List((\"uncompressed\", \"uncompressed\"),\n              (\"bzip2\", \"bzip2\"),\n              (\"deflate\", \"deflate\"),\n              (\"gzip\", \"gzip\"),\n              (\"lz4\", \"lz4\"),\n              (\"snappy\", \"snappy\")\n            ))),\n          ParamText(json_parseMode, json_parseMode, \"DROPMALFORMED\", Some(List((\"DROPMALFORMED\", \"DROPMALFORMED\"),\n            (\"FAILFAST\", \"FAILFAST\"),\n            (\"PERMISSIVE\", \"PERMISSIVE\")))),\n          ParamText(json_dateFormat,json_dateFormat),\n          ParamText(json_timeStampFormat,json_timeStampFormat)\n        )\n        case `orc` \u003d\u003e List(ParamText(orc_compressionCodec,orc_compressionCodec,\"snappy\",\n          Some(List((\"snappy\",\"snappy\"),\n            (\"snappy\", \"snappy\"),\n            (\"uncompressed\",\"uncompressed\"),\n            (\"zlib\", \"zlib\"),\n            (\"lzo\",\"lzo\")\n          ))))\n        case _ \u003d\u003e List()\n      }\n    \n      def getDataSources: List[(String, String)] \u003d sources\n    \n      def getDataSourceParams(d: String): List[ParamText] \u003d d match {\n        case `hdfs` \u003d\u003e List(ParamText(hdfs_namenode, \"HDFS Name node\", \"localhost:9000\"), ParamText(hdfs_path, \"Path of file in HDFS\", \"\"))\n        case `aws` \u003d\u003e List(ParamText(aws_id, \"S3 access ID\", \"\", None, Some(\"password\")), ParamText(aws_secret, \"S3 access secret\", \"\", None, Some(\"password\"))\n          , ParamText(aws_location, \"S3 bucket location\", \"\"))\n        case `adls` \u003d\u003e List(ParamText(adls_storage, \"Azure Storage Account\", \"\", None, Some(\"password\")), ParamText(adls_container, \"Azure Container\", \"\"),\n          ParamText(adls_key, \"Azure Key\", \"\"), ParamText(adls_filepath, \"Azure File path in the container\", \"\"))\n        case `gcs` \u003d\u003e List(ParamText(gcs_projID, \"GCS Project ID\", \"\", None, Some(\"password\")), ParamText(gcs_keyPath, \"Path of Key File\", \"\", None, Some(\"password\")),\n          ParamText(gcs_bucket, \"GCS Bucket Name\", \"\"), ParamText(gcs_path, \"File path in the GCS bucket\", \"\"))\n        case `lfs` \u003d\u003e List(ParamText(lfs_path, \"Path on the local file system\", \"\"))\n        case _ \u003d\u003e List()\n      }\n    \n      def getFileFormats: List[(String, String)] \u003d fileFormats\n    \n      def getFileFormatOptionsForSparkReader(ff: String, z: SparkZeppelinContext): Predef.Map[String, String] \u003d {\n        val opts \u003d mutable.Map.empty[String, String]\n        getFileFormatParams(ff) match {\n          case Nil \u003d\u003e\n          case x: List[ParamText] \u003d\u003e\n            x.foreach(p \u003d\u003e z.angular(p.name).asInstanceOf[String] match {\n              case null \u003d\u003e opts +\u003d (p.name -\u003e p.default)\n              case `system_default` \u003d\u003e               \n              case _ \u003d\u003e opts +\u003d (p.name -\u003e z.angular(p.name).asInstanceOf[String])\n            })\n        }\n        opts.toMap\n      }\n    \n      def getFileFormatOptionsForSnappy(ff: String, z: SparkZeppelinContext): String \u003d {\n        val opts \u003d new scala.collection.mutable.ListBuffer[String]\n        getFileFormatParams(ff) match {\n          case Nil \u003d\u003e\n          case x : List[ParamText] \u003d\u003e x.foreach(p \u003d\u003e\n             z.angular(p.name).asInstanceOf[String] match {\n              case null \u003d\u003e opts +\u003d s\\\"\\\"\\\"$${p.name} \u0027$${p.default}\u0027\\\"\\\"\\\"\n              case \"system_default\" \u003d\u003e \n              case _ \u003d\u003e opts +\u003d s\"$${p.name} \u0027$${z.angular(p.name).asInstanceOf[String]}\u0027\"\n            })\n          }\n        opts.toList.mkString(\",\")\n      }\n    \n      def generateTabularSchema(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String \u003d {\n        val cols \u003d scala.collection.mutable.ListBuffer[(String, String, String)]()\n        val jsTableName \u003d \"TabularSchema\"\n        for (s \u003c- df.schema) {\n          cols +\u003d ((s.name.toString, s.dataType.toString, s.nullable.toString))\n        }\n        val s \u003d new StringBuilder()\n        val bindCheckboxes \u003d new StringBuilder()\n        val unbind \u003d new StringBuilder()\n        for (c \u003c- cols) {\n          s ++\u003d\n              s\\\"\\\"\\\"\n                \u003ctr\u003e\n                \u003ctd style\u003d\"text-align:center\"\u003e\u003cinput type\u003d\"checkbox\" ng-model\u003d\"$${c._1}\"/\u003e\u003c/td\u003e\n                \u003ctd style\u003d\"text-align:left\"\u003e$${c._1}\u003c/td\u003e\n                \u003ctd style\u003d\"text-align:left\"\u003e$${c._2.replaceAll(\"Type\", \"\").toLowerCase}\u003c/td\u003e\n                \u003ctd style\u003d\"text-align:center\"\u003e$${c._3}\u003c/td\u003e\n                \u003c/tr\u003e\n                \\\"\\\"\\\"\n          for (para \u003c- paraIDs) {\n            bindCheckboxes ++\u003d s\\\"\\\"\\\"z.angularBind(\u0027$${c._1}\u0027,$${c._1},\u0027$$para\u0027);\\\"\\\"\\\"\n            unbind ++\u003d s\\\"\\\"\\\"z.angularUnbind(\u0027$${c._1}\u0027,\u0027$$para\u0027);\\\"\\\"\\\"\n          }\n        }\n    \n        for (para \u003c- paraIDs) {\n          bindCheckboxes ++\u003d s\\\"\\\"\\\"z.angularBind(\u0027$${selectAll}\u0027,$${selectAll},\u0027$$para\u0027);\\\"\\\"\\\"\n          unbind ++\u003d s\\\"\\\"\\\"z.angularUnbind(\u0027$${selectAll}\u0027,\u0027$$para\u0027);\\\"\\\"\\\"\n        }\n    \n        val fnName \u003d \"updateAll\"\n        val updateAllFunction \u003d\n          s\\\"\\\"\\\"function $$fnName(select){\n               var checkBoxes \u003d document.getElementsByTagName(\"INPUT\");\n               for (var i \u003d 0; i \u003c checkBoxes.length; i++) {\n                checkBoxes[i].checked \u003d select;\n               }\n             }\\\"\\\"\\\"\n    \n        s\\\"\\\"\\\"%angular\n            $$tableStyle\n            \u003cinput type\u003d\"checkbox\" ng-model\u003d\"$${selectAll}\"\u003eSelect All\u003c/input\u003e\n            \u003ch4\u003e OR select a subset using the following table. \u003c/h4\u003e\n            \u003cdiv style\u003d\"height:300px;overflow:auto\"\u003e\n            \u003ctable cellspacing\u003d\"0\" rules\u003d\"all\" id\u003d$$jsTableName style\u003d\"border-collapse: collapse;\"\u003e\n            \u003ctr\u003e\n                \u003cth style\u003d\"width:120px;text-align:center\"\u003eImport\u003c/th\u003e\n                \u003cth style\u003d\"width:120px;text-align:center\"\u003eColumn Name\u003c/th\u003e\n                \u003cth style\u003d\"width:120px;text-align:center\"\u003eType\u003c/th\u003e\n                \u003cth style\u003d\"width:120px;text-align:center\"\u003eNullable\u003c/th\u003e\n            \u003c/tr\u003e\n            $${s.toString}\n            \u003c/table\u003e\n            \u003c/div\u003e\n            \u003c/br\u003e\n            \u003cbr/\u003e\n            $${\n          renderButtons(List(AngularButton(btnSubmit, \"Confirm\", btnSuccess, Some(bindCheckboxes.toString), Some(confirmMessage), Some(confirmOnClickFunction)),\n            AngularButton(btnReset, \"Reset\", btnDanger, Some(unbind.toString), Some(fnName + \"(false)\"), Some(updateAllFunction))))\n        }\n            \\\"\\\"\\\"\n      }\n    \n      private def typeToBool[T](v: T) \u003d v match {\n        case _: Boolean \u003d\u003e v.asInstanceOf[Boolean]\n        case _ \u003d\u003e v.asInstanceOf[String] match {\n          case \"true\" \u003d\u003e true\n          case _ \u003d\u003e false\n        }\n      }\n    \n      def generateSchemaSelector(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String \u003d {\n        df.schema.isEmpty match {\n          case true \u003d\u003e \"Empty Dataframe provided. No schema to be rendered.\"\n          case _ \u003d\u003e\n            val cols \u003d new StringBuilder()\n            val bind \u003d new StringBuilder()\n            val unbind \u003d new StringBuilder()\n            for (s \u003c- df.schema) {\n              (typeToBool(z.angular(s.name)),typeToBool(z.angular(selectAll))) match {\n                case (true,_) | (_,true) \u003d\u003e {\n                  cols ++\u003d\n                      s\\\"\\\"\\\"\n                        \u003ctr\u003e\n                        \u003ctd style\u003d\"text-align:left\"\u003e$${s.name.toString}\u003c/td\u003e\n                        \u003ctd style\u003d\"text-align:left\"\u003e\n                            $${s.dataType.toString.replaceAll(\"Type\", \"\").toLowerCase}\n                        \u003c/td\u003e\n                        \u003ctd style\u003d\"text-align:center\"\u003e$${s.nullable.toString}\u003c/td\u003e\n                        \u003ctd\u003e \u003cinput type\u003d\"text\" class\u003d\"form-control\" ng-model\u003d\"$${s.name.toString + \"_name\"}\"\n                             ng-init\u003d\"$${s.name.toString + \"_name\"}\u003d\u0027$${s.name.toString}\u0027\" value\u003d\"$${s.name.toString}\"\u003e\n                             \u003c/input\u003e\u003c/td\u003e\n                        \u003ctd\u003e \u003cinput type\u003d\"text\" class\u003d\"form-control\" ng-model\u003d\"$${s.name.toString + \"_dataType\"}\"\n                             ng-init\u003d\"$${s.name.toString + \"_dataType\"}\u003d\n                             \u0027$${s.dataType.toString.replaceAll(\"Type\", \"\").toLowerCase}\u0027\"\n                             value\u003d\"$${s.dataType.toString.replaceAll(\"Type\", \"\").toLowerCase}\"\u003e\n                             \u003c/input\u003e \u003c/td\u003e\n                        \u003ctd\u003e\u003cinput type\u003d\"text\" class\u003d\"form-control\" ng-model\u003d\"$${s.name.toString + \"_nullable\"}\"\n                             ng-init\u003d\"$${s.name.toString + \"_nullable\"}\u003d\u0027$${s.nullable.toString}\u0027\" value\u003d\"$${s.nullable.toString}\"\u003e\n                        \u003c/input\u003e \u003c/td\u003e\n                        \u003c/tr\u003e\\\"\\\"\\\"\n                          for (para \u003c- paraIDs) {\n                            bind ++\u003d\n                                s\\\"\\\"\\\"z.angularBind(\u0027$${s.name.toString + \"_name\"}\u0027,$${s.name.toString + \"_name\"},\u0027$$para\u0027);\n                            z.angularBind(\u0027$${s.name.toString + \"_dataType\"}\u0027,$${s.name.toString + \"_dataType\"},\u0027$$para\u0027);\n                            z.angularBind(\u0027$${s.name.toString + \"_nullable\"}\u0027,$${s.name.toString + \"_nullable\"},\u0027$$para\u0027);\n                            \\\"\\\"\\\"\n                          }\n                        }\n                        case (_,_) \u003d\u003e\n                      }\n                      for (para \u003c- paraIDs) {\n                        unbind ++\u003d\n                            s\\\"\\\"\\\"z.angularUnbind(\u0027$${s.name.toString + \"_name\"}\u0027,\u0027$$para\u0027);\n                            z.angularUnbind(\u0027$${s.name.toString + \"_dataType\"}\u0027,\u0027$$para\u0027);\n                            z.angularUnbind(\u0027$${s.name.toString + \"_nullable\"}\u0027,\u0027$$para\u0027);\n                            z.angularUnbind(\u0027$${selectAll}\u0027,\u0027$$para\u0027)\\\"\\\"\\\"\n                      }\n                    }\n    \n                    s\\\"\\\"\\\"%angular\n                        $$tableStyle\n                        \u003cdiv style\u003d\"height:300px;overflow:auto\"\u003e\n                        \u003ctable cellspacing\u003d\"0\" rules\u003d\"all\" id\u003d\"SchemaSelector\" style\u003d\"border-collapse: collapse;\"\u003e\n                            \u003ctr\u003e\n                                 \u003cth style\u003d\"width:240px;text-align:center\" colspan\u003d\"3\"\u003eInferred from data\u003c/th\u003e\n                                 \u003cth style\u003d\"width:240px;text-align:center\" colspan\u003d\"3\"\u003e[Optional] User specified\u003c/th\u003e\n                            \u003ctr\u003e\n                            \u003ctr\u003e\n                                \u003cth style\u003d\"width:120px;text-align:center\"\u003eColumn Name\u003c/th\u003e\n                                \u003cth style\u003d\"width:60px;text-align:center\"\u003eType\u003c/th\u003e\n                                \u003cth style\u003d\"width:60px;text-align:center\"\u003eNullable\u003c/th\u003e\n                                \u003cth style\u003d\"width:120px;text-align:center\"\u003eColumn Name\u003c/th\u003e\n                                \u003cth style\u003d\"width:60px;text-align:center\"\u003eType\u003c/th\u003e\n                                \u003cth style\u003d\"width:60px;text-align:center\"\u003eNullable\u003c/th\u003e\n                            \u003c/tr\u003e\n                            $${cols.toString}\n                        \u003c/table\u003e\n                        \u003c/div\u003e\n                        \u003cbr/\u003e\n                        $${\n                      renderButtons(List(AngularButton(btnSubmit, \"Confirm\", btnSuccess, Some(bind.toString),\n                        Some(confirmMessage), Some(confirmOnClickFunction)),\n                        AngularButton(btnReset, \"Reset\", btnDanger, Some(unbind.toString), Some(resetMessage), Some(confirmOnClickFunction))))\n                    }\n            \\\"\\\"\\\"\n        }\n      }\n    \n      def getProjectionFromSchema(df: org.apache.spark.sql.DataFrame, z: SparkZeppelinContext): String \u003d {\n        val p \u003d new scala.collection.mutable.ListBuffer[String]()\n        for (s \u003c- df.schema) {\n          if (z.angular(s.name.toString + \"_name\").asInstanceOf[String] !\u003d null) {\n            p +\u003d List(z.angular(s.name.toString + \"_name\").asInstanceOf[String],\n              z.angular(s.name.toString + \"_dataType\").asInstanceOf[String],\n              if (z.angular(s.name.toString + \"_nullable\").asInstanceOf[String] \u003d\u003d \"false\")\n                \"NOT NULL\" else \"NULL\").mkString(\" \")\n          }\n        }\n        \"(\" + p.toList.mkString(\",\") + \")\"\n      }\n    \n      def getCreateExternalTableQuery(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame): String \u003d {\n        val space \u003d \" \"\n        \"CREATE EXTERNAL TABLE\" + space + z.get(\"dataset\").asInstanceOf[String] + space + \n            getProjectionFromSchema(df,z) + space +\n            \"USING\" + space +\n            (z.get(\"fileFormat\").asInstanceOf[String] match {\n              case `avro` \u003d\u003e avro_source\n              case `xml` \u003d\u003e xml_source\n              case f \u003d\u003e f\n            }) + space +\n            \"OPTIONS (\" + s\\\"\\\"\\\"path \u0027$${z.get(\"path\")}\u0027 \\\"\\\"\\\" +\n              (getFileFormatOptionsForSnappy(z.get(\"fileFormat\").asInstanceOf[String], z) match {\n                case \"\" \u003d\u003e \"\"\n                case x: String \u003d\u003e \",\" + x\n              }) +\n            \")\"\n        }\n     }\"\"\")\n}",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:02:01.213",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "lineNumbers": true,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573719176971_-576816580",
+      "id": "20191114-134256_2139901896",
+      "dateCreated": "2019-11-14 13:42:56.971",
+      "dateStarted": "2019-11-15 22:00:50.401",
+      "dateFinished": "2019-11-15 22:00:51.208",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Preamble",
+      "text": "%angular\n\u003ch2\u003ePreamble\u003c/h2\u003e\nPhase 1 : Data Discovery \nPhase 2 : Setting up External Data Source\nPhase 3 : Explain possibilities and redirect to relevant example notebooks.\nPhase 4 : Capacity Planning\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:09:04.368",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined",
+        "title": false,
+        "editorHide": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573832939290_-34378634",
+      "id": "20191115-211859_1673894231",
+      "dateCreated": "2019-11-15 21:18:59.290",
+      "dateStarted": "2019-11-15 22:09:04.369",
+      "dateFinished": "2019-11-15 22:09:04.376",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 0 : Cleanup notebook state from previous run.",
+      "text": "{\n    val cleanParaIDs \u003d List(\"20191115-115732_1358414697\",\"20191115-120810_261688842\",\"20191114-135216_381277934\",\"20191114-185720_1129545477\",\"20191114-192401_1018752763\",\n\"20191114-193913_1032132258\",\"20191114-152648_1062604927\",\"20191114-161234_356843923\",\"20191115-094013_994709755\")\n    cleanParaIDs.foreach(z.getInterpreterContext().getAngularObjectRegistry().removeAll(\"2ETXBXHR7\",_) )\n    z.getInterpreterContext().getAngularObjectRegistry().getAllWithGlobal(\"2ETXBXHR7\")\n}\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:07:52.549",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573791045078_2066395494",
+      "id": "20191115-094045_475314881",
+      "dateCreated": "2019-11-15 09:40:45.078",
+      "dateStarted": "2019-11-15 22:00:59.671",
+      "dateFinished": "2019-11-15 22:01:00.745",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "",
+      "text": "%angular\n\u003ch2\u003ePhase 1 : Data Discovery\u003c/h2\u003e\n[TODO]: Elaborate details for steps. Pick fonts and use bulleted list.\nConfigure system parameters that will allow reading the target file from the destination data source \u003cbr/\u003e\nStep 1 : Select the file format (and data source type as well ? )\u003cbr/\u003e\nStep 2 : Provide all information need to access the data source. Explain the user the implications of setting user credentials here or in hive-site.xml of the cluster.\u003cbr/\u003e\nStep 3 : Provide a peek of the data with minimal format related parameters. This is meant to \n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 21:37:24.813",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined",
+        "title": false,
+        "editorHide": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573833004227_-612880442",
+      "id": "20191115-212004_1201405416",
+      "dateCreated": "2019-11-15 21:20:04.227",
+      "dateStarted": "2019-11-15 21:33:30.689",
+      "dateFinished": "2019-11-15 21:33:30.695",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 1 : Select File Format",
+      "text": "val dataSource \u003d z.select(\"Data Source\",QueryBuilder.getDataSources.toSeq).asInstanceOf[String]\nval fileFormat \u003d z.select(\"File Format\",QueryBuilder.getFileFormats.toSeq).asInstanceOf[String]\nif(fileFormat.isEmpty || dataSource.isEmpty){\n    println(s\"\"\"%angular\n    \u003ch4\u003ePlease select a file format.\u003c/h4\u003e\n    \"\"\")\n}else{\n    z.put(\"fileFormat\",fileFormat)\n    z.run(\"20191114-135216_381277934\")\n}",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:29:44.286",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "runOnSelectionChange": true,
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {
+          "FileFormats": "CSV"
+        },
+        "forms": {
+          "Data Source": {
+            "type": "Select",
+            "options": [
+              {
+                "value": "hdfs",
+                "displayName": "Hadoop File System"
+              },
+              {
+                "value": "AWS",
+                "displayName": "Amazon S3"
+              },
+              {
+                "value": "LFS",
+                "displayName": "Local File System"
+              },
+              {
+                "value": "GCS",
+                "displayName": "Google Cloud Storage"
+              },
+              {
+                "value": "ADLS",
+                "displayName": "Microsoft Azure Store"
+              }
+            ],
+            "name": "Data Source",
+            "displayName": "Data Source",
+            "defaultValue": "",
+            "hidden": false
+          },
+          "File Format": {
+            "type": "Select",
+            "options": [
+              {
+                "value": "CSV",
+                "displayName": "CSV"
+              },
+              {
+                "value": "Parquet",
+                "displayName": "Parquet"
+              },
+              {
+                "value": "JSON",
+                "displayName": "JSON"
+              },
+              {
+                "value": "ORC",
+                "displayName": "ORC"
+              },
+              {
+                "value": "Avro",
+                "displayName": "Avro"
+              },
+              {
+                "value": "XML",
+                "displayName": "XML"
+              },
+              {
+                "value": "Text",
+                "displayName": "Text"
+              }
+            ],
+            "name": "File Format",
+            "displayName": "File Format",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
+      },
+      "apps": [],
+      "jobName": "paragraph_1573797412438_2070634463",
+      "id": "20191115-112652_792080898",
+      "dateCreated": "2019-11-15 11:26:52.438",
+      "dateStarted": "2019-11-15 22:29:44.324",
+      "dateFinished": "2019-11-15 22:29:45.131",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 2: Setup Data Source parameters",
+      "text": "println(QueryBuilder.renderParamList(QueryBuilder.getDataSourceParams(dataSource),List(\"20191114-185720_1129545477\",\"20191115-120810_261688842\",\"20191115-115732_1358414697\")))",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 21:25:56.284",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573799252806_258253520",
+      "id": "20191115-115732_1358414697",
+      "dateCreated": "2019-11-15 11:57:32.806",
+      "dateStarted": "2019-11-15 13:14:32.733",
+      "dateFinished": "2019-11-15 13:14:34.293",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 3: Data Preview using minimal file format Parameters",
+      "text": "val path \u003d QueryBuilder.getPathFromParams(z,dataSource)\nQueryBuilder.configureDataSourceEnvParams(sc,z,dataSource)\nval df \u003d spark.read.format(z.get(\"fileFormat\").asInstanceOf[String]).load(path)    \nz.show(df)\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:56:34.086",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573799890348_1178496035",
+      "id": "20191115-120810_261688842",
+      "dateCreated": "2019-11-15 12:08:10.348",
+      "dateStarted": "2019-11-15 13:20:03.062",
+      "dateFinished": "2019-11-15 13:20:04.951",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%angular\n\u003ch2\u003ePhase 2 : Setting up External Data Source\u003c/h2\u003e\nStep 4 : Provide file parsing parameters. Explain the consequences of infer-schema and time it will take in case files are too large.\u003cbr/\u003e\nStep 5 : Select the columns to be imported. Explain the possibility of limiting the dataset size in memory if using only relevant columns while creating the external table.\nStep 6 : Select the final schema and allow the user to change the data types. Explain the usage with examples of datetime format and string to integer scenarios.\nStep 7 : Take the final input of data set name\nStep 8 : Execute the query to create the external table.",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:20:06.752",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined",
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573834976870_731076585",
+      "id": "20191115-215256_607236063",
+      "dateCreated": "2019-11-15 21:52:56.870",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 4: Choose file format parameters to be used for setting up External data source",
+      "text": "\nprintln(QueryBuilder.renderParamList(QueryBuilder.getFileFormatParams(fileFormat),List(\"20191114-185720_1129545477\",\"20191114-193913_1032132258\")))\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:56:39.041",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573719736144_-1558949755",
+      "id": "20191114-135216_381277934",
+      "dateCreated": "2019-11-14 13:52:16.145",
+      "dateStarted": "2019-11-15 13:21:06.091",
+      "dateFinished": "2019-11-15 13:21:07.943",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 5: Select the columns to be used for creating the External Table",
+      "text": "val df \u003d spark.read.format(QueryBuilder.csv).options(QueryBuilder.getFileFormatOptionsForSparkReader(fileFormat,z)).load(path)\nprintln(QueryBuilder.generateTabularSchema(z,df,List(\"20191114-192401_1018752763\",\"20191114-185720_1129545477\")))",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:15:28.516",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573738040650_651590874",
+      "id": "20191114-185720_1129545477",
+      "dateCreated": "2019-11-14 18:57:20.650",
+      "dateStarted": "2019-11-15 13:21:34.077",
+      "dateFinished": "2019-11-15 13:21:36.074",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 6: Select schema and data types to be used for External Table Creation",
+      "text": "println(QueryBuilder.generateSchemaSelector(z,df,List(\"20191114-193913_1032132258\",\"20191114-185720_1129545477\")))",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:56:51.261",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573739641911_-273433426",
+      "id": "20191114-192401_1018752763",
+      "dateCreated": "2019-11-14 19:24:01.911",
+      "dateStarted": "2019-11-15 13:30:07.237",
+      "dateFinished": "2019-11-15 13:30:09.238",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 7: Provide the name for External Table",
+      "text": "val dataset \u003d z.textbox(\"Name of the External Table\").asInstanceOf[String]\nif (dataset.isEmpty)\n{\n    println(s\"\"\"%angular\n    \u003ch4\u003ePlease enter a name for the external table to be created. \u003c/h4\u003e\"\"\")\n}else {\n    z.put(\"dataset\",dataset)\n    z.put(\"fileFormat\",QueryBuilder.csv)\n    z.put(\"path\",\"/opt/TIB_compute_1.1.1_linux/quickstart/src/main/resources/customer_with_headers.csv\")\n    val externQuery \u003d QueryBuilder.getCreateExternalTableQuery(z,df)\n    z.put(\"externQuery\",externQuery)\n    z.put(\"cacheName\",(dataset + \"_CACHE\").toUpperCase)\n}",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:56:58.585",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "title": true
+      },
+      "settings": {
+        "params": {
+          "externTable": "",
+          "Name of the External Table": "csvTestExtTable3"
+        },
+        "forms": {
+          "Name of the External Table": {
+            "type": "TextBox",
+            "name": "Name of the External Table",
+            "displayName": "Name of the External Table",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
+      },
+      "apps": [],
+      "jobName": "paragraph_1573740553007_-1512419358",
+      "id": "20191114-193913_1032132258",
+      "dateCreated": "2019-11-14 19:39:13.007",
+      "dateStarted": "2019-11-15 13:30:23.015",
+      "dateFinished": "2019-11-15 13:30:25.096",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 8: Create the External Table",
+      "text": "%jdbcintp\n{externQuery}\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:57:02.486",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "title": true
+      },
+      "settings": {
+        "params": {
+          "externQuery": ""
+        },
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573725408904_-757180827",
+      "id": "20191114-152648_1062604927",
+      "dateCreated": "2019-11-14 15:26:48.904",
+      "dateStarted": "2019-11-15 13:30:28.995",
+      "dateFinished": "2019-11-15 13:30:29.460",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%angular\n\u003ch4\u003ePhase 3 : Data Transformations\u003c/h4\u003e\nUse cases and links to examples.\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:21:25.376",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573836611668_2010995478",
+      "id": "20191115-222011_1155201036",
+      "dateCreated": "2019-11-15 22:20:11.668",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%angular\n\u003ch4\u003ePhase 4 : Capacity Planning \u003c/h4\u003e\nStep 9 : Create a cache table using 10% of data.\nStep 10 : Show the memory foot print using the TableStats VTI. Explain the approximate extrapolation logic.\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:23:10.144",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573836615735_-1867077673",
+      "id": "20191115-222015_1257128734",
+      "dateCreated": "2019-11-15 22:20:15.735",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 9: Create the Cache table for memory usage estimation (using 10% data)",
+      "text": "%jdbcintp\nCREATE TABLE {dataset}_cache USING column AS (SELECT * FROM {dataset} WHERE rand() \u003c 0.1)\n    ",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:57:09.047",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573728154611_-353169190",
+      "id": "20191114-161234_356843923",
+      "dateCreated": "2019-11-14 16:12:34.611",
+      "dateStarted": "2019-11-15 13:32:06.936",
+      "dateFinished": "2019-11-15 13:32:06.960",
+      "status": "ERROR",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "title": "Step 10: Cache statistics as gauge for capacity planning",
+      "text": "%jdbcintp\nselect * from sys.tablestats where tablename\u003d\u0027APP.{cacheName}\u0027",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 20:57:12.651",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573791013118_1154101667",
+      "id": "20191115-094013_994709755",
+      "dateCreated": "2019-11-15 09:40:13.118",
+      "dateStarted": "2019-11-15 13:30:47.363",
+      "dateFinished": "2019-11-15 13:30:47.386",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "%angular\n\u003ch4\u003eEpilouge\u003c/h4\u003e",
+      "user": "anonymous",
+      "dateUpdated": "2019-11-15 22:28:19.775",
+      "config": {
+        "colWidth": 10.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/undefined"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1573808035324_1655136349",
+      "id": "20191115-142355_873714057",
+      "dateCreated": "2019-11-15 14:23:55.324",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "/Snappy/testPrecode",
+  "id": "2ETXBXHR7",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "jdbcintp:shared_process": [],
+    "angular::2ETXBXHR7": [],
+    "myspark::2ETXBXHR7": []
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {}
+}
