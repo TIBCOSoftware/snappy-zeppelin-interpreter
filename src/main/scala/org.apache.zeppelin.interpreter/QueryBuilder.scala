@@ -446,7 +446,7 @@ object QueryBuilder {
   def getDataSourceParams(d: String): List[ParamText] = d match {
     case `hdfs` => List(ParamText(hdfs_namenode, "HDFS Name node", "localhost:9000"), ParamText(hdfs_path, "Path of file in HDFS", ""))
     case `aws` => List(ParamText(aws_id, "S3 access ID", "", None, Some("password")), ParamText(aws_secret, "S3 access secret", "", None, Some("password"))
-      , ParamText(aws_location, "S3 bucket location", ""))
+      , ParamText(aws_location, "S3 bucket location", ""),ParamText(aws_accessor,"AWS Accessor","s3a"))
     case `adls` => List(ParamText(adls_storage, "Azure Storage Account", "", None, Some("password")), ParamText(adls_container, "Azure Container", ""),
       ParamText(adls_key, "Azure Key", ""), ParamText(adls_filepath, "Azure File path in the container", ""))
     case `gcs` => List(ParamText(gcs_projID, "GCS Project ID", "", None, Some("password")), ParamText(gcs_keyPath, "Path of Key File", "", None, Some("password")),
