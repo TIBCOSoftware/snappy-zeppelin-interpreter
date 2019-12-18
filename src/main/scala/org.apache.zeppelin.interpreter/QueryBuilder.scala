@@ -473,8 +473,10 @@ object QueryBuilder {
       case Nil =>
       case x: List[ParamText] =>
         x.foreach(p => z.angular(p.name).asInstanceOf[String] match {
-          case `system_default` =>
-          case null => opts += (p.name -> p.default)
+          case null => p.default match {
+            case `system_default` =>
+            case _ => opts += (p.name -> p.default)
+          }
           case _ => opts += (p.name -> z.angular(p.name).asInstanceOf[String])
         })
     }
@@ -493,8 +495,9 @@ object QueryBuilder {
       case Nil =>
       case x : List[ParamText] => x.foreach(p =>
          z.angular(p.name).asInstanceOf[String] match {
-          case `system_default` =>
-          case null => opts += s"""${p.name} '${p.default}'"""
+          case null => p.default match {
+            case `system_default` =>
+            case _ => opts += s"""${p.name} '${p.default}'"""}
           case _ => opts += s"${p.name} '${z.angular(p.name).asInstanceOf[String]}'"
         })
       }
