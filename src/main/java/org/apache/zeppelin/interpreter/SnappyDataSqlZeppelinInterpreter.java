@@ -112,10 +112,17 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       }
     }
 
+
    // long end,start;
     for(int i=0;i<50;i++) {
       //start = System.currentTimeMillis();
       SnappyContext snc = new SnappyContext(sc);
+      if (null != getProperty(Constants.DEFAULT_USER_KEY) ) {
+        snc.setConf(Constants.USER_KEY, getProperty(Constants.DEFAULT_USER_KEY));
+        if (null != getProperty(Constants.DEFAULT_USER_PASSWORD) ) {
+          snc.setConf(Constants.USER_PASSWORD, getProperty(Constants.DEFAULT_USER_PASSWORD));
+        }
+      }
       //end = System.currentTimeMillis();
       snc.tables().collect();
       connectionQueue.add(snc);
