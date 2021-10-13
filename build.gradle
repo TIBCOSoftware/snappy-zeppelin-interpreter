@@ -16,11 +16,11 @@
  */
 
 plugins {
-  id 'com.github.johnrengelman.shadow' version '2.0.1'
+  id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 group 'io.snappydata'
-version '0.7.3.6'
+version '0.7.3.7'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -29,11 +29,9 @@ apply plugin: 'signing'
 apply plugin: 'distribution'
 apply plugin: 'scala'
 
-
 repositories {
-    mavenLocal()
     mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    // maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     maven { url "https://oss.sonatype.org/content/repositories/public" }
 }
 
@@ -50,18 +48,17 @@ ext {
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
-    snappySparkVersion = '2.1.1.7'
-    snappyDataVersion = '1.1.1'
-    gemfireVersion = "1.6.1"
+    snappySparkVersion = '2.1.1.8'
+    snappyDataVersion = '1.2.0'
     zeppelinVersion = '0.7.3'
 
     createdBy = System.getProperty('user.name')
 }
 
 configurations.archives.with {
-    artifacts.remove artifacts.find { it.archiveTask.is distTar}
-    artifacts.remove artifacts.find { it.archiveTask.is distZip}
+    artifacts.remove artifacts.find { it.extension.contains('tar') || it.extension.contains('tgz') || it.extension.contains('zip') }
 }
+
 dependencies {
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
     compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
