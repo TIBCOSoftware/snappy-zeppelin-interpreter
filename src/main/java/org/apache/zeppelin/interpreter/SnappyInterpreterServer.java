@@ -24,7 +24,7 @@ import org.apache.zeppelin.interpreter.remote.RemoteInterpreterServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.Permission;
+import java.io.IOException;
 
 /**
  *
@@ -32,8 +32,14 @@ import java.security.Permission;
 public class SnappyInterpreterServer extends RemoteInterpreterServer {
   public static Logger logger = LoggerFactory.getLogger(SnappyInterpreterServer.class);
 
-  public SnappyInterpreterServer(Integer port) throws TTransportException {
-    super(port);
+  public SnappyInterpreterServer(String callbackHost, int callbackPort,
+                                 String portRange) throws IOException, TTransportException {
+    this(callbackHost, callbackPort, portRange, false);
+  }
+
+  public SnappyInterpreterServer(String callbackHost, int callbackPort, String portRange,
+                                 boolean isTest) throws TTransportException, IOException {
+    super(callbackHost, callbackPort, portRange, isTest);
     logger.info("Initializing SnappyInterpreter Server");
 
     GemFireCacheImpl.getInstance().getResourceManager().

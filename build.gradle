@@ -20,7 +20,7 @@ plugins {
 }
 
 group 'io.snappydata'
-version '0.7.3.7'
+version '0.8.2.1'
 
 apply plugin: 'java'
 apply plugin: 'wrapper'
@@ -50,7 +50,7 @@ ext {
     buildDir = 'build-artifacts'
     snappySparkVersion = '2.1.1.8'
     snappyDataVersion = '1.2.0'
-    zeppelinVersion = '0.7.3'
+    zeppelinVersion = '0.8.2'
 
     createdBy = System.getProperty('user.name')
 }
@@ -61,7 +61,7 @@ configurations.archives.with {
 
 dependencies {
     compile group: 'org.apache.zeppelin', name: 'zeppelin-interpreter', version: zeppelinVersion
-    compile group: 'org.apache.zeppelin', name: 'zeppelin-spark_' + scalaBinaryVersion, version: zeppelinVersion
+    compile group: 'org.apache.zeppelin', name: 'spark-interpreter', version: zeppelinVersion
     compile(group: 'org.apache.zeppelin', name: 'zeppelin-jdbc', version: zeppelinVersion) {
       exclude(group: 'jline', module: 'jline')
     }
@@ -112,6 +112,7 @@ task product(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
   exclude 'META-INF/maven/log4j/**'
   exclude 'org/slf4j/**'
   exclude 'META-INF/maven/org.slf4j/**'
+  exclude 'log4j.properties'
 
   if (rootProject.hasProperty('enablePublish')) {
     createdBy = 'SnappyData Build Team'

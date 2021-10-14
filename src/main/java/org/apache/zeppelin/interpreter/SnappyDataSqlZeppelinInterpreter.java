@@ -32,36 +32,22 @@
  */
 package org.apache.zeppelin.interpreter;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import io.snappydata.ToolsCallback;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkContext;
-import org.apache.spark.scheduler.ActiveJob;
-import org.apache.spark.scheduler.DAGScheduler;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SnappyContext;
-import org.apache.spark.sql.SnappySession;
 import org.apache.spark.sql.collection.ToolsCallbackInit;
-import org.apache.zeppelin.jdbc.JDBCInterpreter;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
-import org.apache.zeppelin.spark.ZeppelinContext;
+import org.apache.zeppelin.spark.SparkZeppelinContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.collection.Iterator;
-import scala.collection.mutable.HashSet;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.*;
-
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 
 /**
  * Snappydatasql interpreter used to connect snappydata cluster using jdbc for performing sql
@@ -93,6 +79,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   private volatile URLClassLoader contextLoader = null;
 
   private int maxResult;
+  private SparkZeppelinContext context;
 
   @Override
   public void open() {
@@ -101,6 +88,8 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       sc.hadoopConfiguration().set(Constants.FS_S3A_CONNECTION_MAXIMUM,"1000");
     }
     this.maxResult = Integer.parseInt(getProperty("zeppelin.spark.maxResult"));
+    this.context = new SparkZeppelinContext(sc, getInterpreterGroup()
+            .getInterpreterHookRegistry(), maxResult);
 
     if (null != getProperty(Constants.FS_S3A_ACCESS_KEY) && null != getProperty(Constants.FS_S3A_SECRET_KEY)) {
       sc.hadoopConfiguration().set(Constants.FS_S3A_IMPL, "org.apache.hadoop.fs.s3a.S3AFileSystem");
@@ -137,7 +126,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   }
 
 
-  private SnappyDataZeppelinInterpreter getSparkInterpreter() {
+  private SnappyDataZeppelinInterpreter getSparkInterpreter() throws InterpreterException {
     LazyOpenInterpreter lazy = null;
     SnappyDataZeppelinInterpreter snappyDataZeppelinInterpreter = null;
     Interpreter p = getInterpreterInTheSameSessionByClassName(SnappyDataZeppelinInterpreter.class.getName());
@@ -287,7 +276,7 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
   }
 
   @Override
-  public int getProgress(InterpreterContext interpreterContext) {
+  public int getProgress(InterpreterContext interpreterContext) throws InterpreterException {
     SnappyDataZeppelinInterpreter snappyDataZeppelinInterpreter = getSparkInterpreter();
     return snappyDataZeppelinInterpreter.getProgress(interpreterContext);
 
@@ -314,7 +303,8 @@ public class SnappyDataSqlZeppelinInterpreter extends Interpreter {
       Dataset ds = snc.sql(sql);
       String data = null;
       if (null != ds) {
-        data = ZeppelinContext.showDF(snc.sparkContext(), interpreterContext, ds, maxResult);
+        this.context.setInterpreterContext(interpreterContext);
+        data = this.context.showData(ds);
       }
       long endTime = System.currentTimeMillis();
 

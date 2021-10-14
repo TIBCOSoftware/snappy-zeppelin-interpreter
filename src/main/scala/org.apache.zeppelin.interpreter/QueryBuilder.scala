@@ -35,16 +35,9 @@
 
 package org.apache.zeppelin.interpreter
 
+import org.apache.zeppelin.spark.SparkZeppelinContext
+
 import scala.collection.mutable
-
-import org.apache.zeppelin.spark.ZeppelinContext
-
-import org.apache.spark.sql._
-import org.apache.spark.sql.{SnappySession, SparkSession}
-import scala.collection.mutable.{ListBuffer, Map}
-
-import org.apache.spark.sql._
-import org.apache.spark.SparkContext
 
 /**
  * An utility package for AngularJS code generation and basic query string formation based on user inputs
@@ -314,7 +307,7 @@ object QueryBuilder {
    * @param ds
    * @return
    */
-  def getPathFromParams(z: ZeppelinContext, ds: String): String = ds match {
+  def getPathFromParams(z: SparkZeppelinContext, ds: String): String = ds match {
     case `hdfs` => hdfs + dlColonSlash + z.angular(hdfs_namenode).asInstanceOf[String] + dlSlash +
         z.angular(hdfs_path).asInstanceOf[String]
     case `aws` => z.angular(aws_accessor) + dlColonSlash + z.angular(aws_id).asInstanceOf[String] + dlColon +
@@ -334,7 +327,7 @@ object QueryBuilder {
    * @param z Zepplin Context
    * @param ds Data source identifier string
    */
-  def configureDataSourceEnvParams(sc: org.apache.spark.SparkContext, z: ZeppelinContext, ds: String): Unit = ds match {
+  def configureDataSourceEnvParams(sc: org.apache.spark.SparkContext, z: SparkZeppelinContext, ds: String): Unit = ds match {
     case `gcs` =>
       sc.hadoopConfiguration.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
       sc.hadoopConfiguration.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
@@ -467,7 +460,7 @@ object QueryBuilder {
    * @param z Zeppelin Context
    * @return
    */
-  def getFileFormatOptionsForSparkReader(ff: String, z: ZeppelinContext): Predef.Map[String, String] = {
+  def getFileFormatOptionsForSparkReader(ff: String, z: SparkZeppelinContext): Predef.Map[String, String] = {
     val opts = mutable.Map.empty[String, String]
     getFileFormatParams(ff) match {
       case Nil =>
@@ -489,7 +482,7 @@ object QueryBuilder {
    * @param z Zeppelin Context
    * @return
    */
-  def getFileFormatOptionsForSnappy(ff: String, z: ZeppelinContext): String = {
+  def getFileFormatOptionsForSnappy(ff: String, z: SparkZeppelinContext): String = {
     val opts = new scala.collection.mutable.ListBuffer[String]
     getFileFormatParams(ff) match {
       case Nil =>
@@ -511,7 +504,7 @@ object QueryBuilder {
    * @param paraIDs Zeppelin paragraph with which these variables need to be bound.
    * @return
    */
-  def generateTabularSchema(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
+  def generateTabularSchema(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
     val cols = scala.collection.mutable.ListBuffer[(String, String, String)]()
     val jsTableName = "TabularSchema"
     for (s <- df.schema) {
@@ -595,7 +588,7 @@ object QueryBuilder {
    * @param paraIDs List of Zeppelin notebook paragraphs with which these variables should be bound.
    * @return
    */
-  def generateSchemaSelector(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
+  def generateSchemaSelector(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame, paraIDs: List[String]): String = {
     df.schema.isEmpty match {
       case true => "Empty Dataframe provided. No schema to be rendered."
       case _ =>
@@ -679,7 +672,7 @@ object QueryBuilder {
    * @param z Zeppelin Context
    * @return
    */
-  def getProjectionFromScehma(df: org.apache.spark.sql.DataFrame, z: ZeppelinContext): String = {
+  def getProjectionFromScehma(df: org.apache.spark.sql.DataFrame, z: SparkZeppelinContext): String = {
     val p = new scala.collection.mutable.ListBuffer[String]()
     for (s <- df.schema) {
       if (z.angular(s.name.toString + "_name").asInstanceOf[String] != null) {
@@ -699,7 +692,7 @@ object QueryBuilder {
    * @param df Dataframe
    * @return The final query that will be executed for creation of the external table representing the data.
    */
-  def getCreateExternalTableQuery(z: ZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
+  def getCreateExternalTableQuery(z: SparkZeppelinContext, df: org.apache.spark.sql.DataFrame): String = {
     val space = " "
     // TODO: Confirm the selective projection creation from file formats and apply it here.
     "CREATE EXTERNAL TABLE" + space + z.get("dataset").asInstanceOf[String] + space + "USING" + space +

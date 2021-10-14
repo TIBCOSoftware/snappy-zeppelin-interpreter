@@ -36,27 +36,10 @@
 package org.apache.zeppelin.interpreter;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.base.Joiner;
-
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.SparkEnv;
-
-import org.apache.spark.SecurityManager;
 import org.apache.spark.repl.SparkILoop;
 import org.apache.spark.scheduler.ActiveJob;
 import org.apache.spark.scheduler.DAGScheduler;
@@ -65,23 +48,15 @@ import org.apache.spark.sql.SnappyContext;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.collection.ToolsCallbackInit;
 import org.apache.spark.ui.jobs.JobProgressListener;
-import org.apache.zeppelin.interpreter.Interpreter;
-import org.apache.zeppelin.interpreter.InterpreterContext;
-import org.apache.zeppelin.interpreter.InterpreterException;
-import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResult.Code;
-import org.apache.zeppelin.interpreter.InterpreterUtils;
-import org.apache.zeppelin.interpreter.WrappedInterpreter;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.apache.zeppelin.interpreter.util.InterpreterOutputStream;
 import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.apache.zeppelin.spark.SparkVersion;
-import org.apache.zeppelin.spark.ZeppelinContext;
-import org.apache.zeppelin.spark.dep.SparkDependencyResolver;
+import org.apache.zeppelin.spark.SparkZeppelinContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import scala.Enumeration.Value;
 import scala.Some;
 import scala.Tuple2;
@@ -92,7 +67,6 @@ import scala.collection.Seq;
 import scala.collection.convert.WrapAsJava$;
 import scala.collection.mutable.HashMap;
 import scala.collection.mutable.HashSet;
-import scala.reflect.io.AbstractFile;
 import scala.tools.nsc.Global;
 import scala.tools.nsc.Settings;
 import scala.tools.nsc.interpreter.Completion.Candidates;
@@ -103,9 +77,14 @@ import scala.tools.nsc.settings.MutableSettings;
 import scala.tools.nsc.settings.MutableSettings.BooleanSetting;
 import scala.tools.nsc.settings.MutableSettings.PathSetting;
 
-import org.apache.zeppelin.interpreter.InterpreterResult.Code;
-import org.apache.zeppelin.scheduler.Scheduler;
-import org.apache.zeppelin.interpreter.Interpreter.FormType;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * Most of the contents of this class is borrowed from Spark Interpreter in zeppelin
@@ -113,7 +92,7 @@ import org.apache.zeppelin.interpreter.Interpreter.FormType;
  */
 public class SnappyDataZeppelinInterpreter extends Interpreter {
   public static Logger logger = LoggerFactory.getLogger(SnappyDataZeppelinInterpreter.class);
-  private ZeppelinContext z;
+  private SparkZeppelinContext z;
   private SparkILoop interpreter;
   /**
    * intp - scala.tools.nsc.interpreter.IMain; (scala 2.11)
@@ -282,11 +261,11 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       conf.set("spark.scheduler.mode", "FAIR");
       conf.setMaster(getProperty("master"));
 
-      Properties intpProperty = getProperty();
+      Properties interpreterProperties = getProperties();
 
-      for (Object k : intpProperty.keySet()) {
+      for (Object k : interpreterProperties.keySet()) {
         String key = (String) k;
-        String val = toString(intpProperty.get(key));
+        String val = toString(interpreterProperties.get(key));
         if (!key.startsWith("spark.") || !val.trim().isEmpty()) {
           logger.debug(String.format("SparkConf: key = [%s], value = [%s]", key, val));
           conf.set(key, val);
@@ -322,11 +301,12 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     if (getProperty("master").equals("yarn-client")) {
       System.setProperty("SPARK_YARN_MODE", "true");
     }
-    if (getProperty().containsKey("spark.yarn.keytab") &&
-            getProperty().containsKey("spark.yarn.principal")) {
+    Properties interpreterProperties = getProperties();
+    if (interpreterProperties.containsKey("spark.yarn.keytab") &&
+            interpreterProperties.containsKey("spark.yarn.principal")) {
       try {
-        String keytab = getProperty().getProperty("spark.yarn.keytab");
-        String principal = getProperty().getProperty("spark.yarn.principal");
+        String keytab = interpreterProperties.getProperty("spark.yarn.keytab");
+        String principal = interpreterProperties.getProperty("spark.yarn.principal");
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
       } catch (IOException e) {
         throw new RuntimeException("Can not pass kerberos authentication", e);
@@ -507,7 +487,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
       addDeployedJars();
 
       hooks = getInterpreterGroup().getInterpreterHookRegistry();
-      z = new ZeppelinContext(sc, snc, null, dep, hooks,
+      z = new SparkZeppelinContext(sc, hooks,
               Integer.parseInt(getProperty("zeppelin.spark.maxResult")));
 
       interpret("@transient val _binder = new java.util.HashMap[String, Object]()");
@@ -616,7 +596,8 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
   }
 
   @Override
-  public List<InterpreterCompletion> completion(String buf, int cursor) {
+  public List<InterpreterCompletion> completion(String buf, int cursor,
+                                                InterpreterContext interpreterContext) {
     if (completer == null) {
       logger.warn("Can't find completer");
       return new LinkedList<InterpreterCompletion>();
@@ -638,7 +619,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
     List<InterpreterCompletion> completions = new LinkedList<InterpreterCompletion>();
 
     for (String candidate : candidates) {
-      completions.add(new InterpreterCompletion(candidate, candidate));
+      completions.add(new InterpreterCompletion(candidate, candidate, ""));
     }
 
     return completions;
@@ -1006,7 +987,7 @@ public class SnappyDataZeppelinInterpreter extends Interpreter {
             SnappyDataZeppelinInterpreter.class.getName() + this.hashCode(), 10);
   }
 
-  public ZeppelinContext getZeppelinContext() {
+  public SparkZeppelinContext getZeppelinContext() {
     return z;
   }
 
