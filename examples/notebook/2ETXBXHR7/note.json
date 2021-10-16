@@ -516,7 +516,7 @@
     },
     {
       "title": "Step 8: Create the External Table",
-      "text": "%snappydata.sql\n{externQuery}\n",
+      "text": "%jdbc\n{externQuery}\n",
       "user": "anonymous",
       "dateUpdated": "2019-11-15 20:57:02.486",
       "config": {
@@ -607,7 +607,7 @@
     },
     {
       "title": "Step 9: Create the Cache table for memory usage estimation (using 10% data)",
-      "text": "%snappydata.sql\nCREATE TABLE {dataset}_cache USING column AS (SELECT * FROM {dataset} WHERE rand() \u003c 0.1)\n    ",
+      "text": "%jdbc\nCREATE TABLE {dataset}_cache USING column AS (SELECT * FROM {dataset} WHERE rand() \u003c 0.1)\n    ",
       "user": "anonymous",
       "dateUpdated": "2019-11-15 20:57:09.047",
       "config": {
@@ -641,7 +641,7 @@
     },
     {
       "title": "Step 10: Cache statistics as gauge for capacity planning",
-      "text": "%snappydata.sql\nselect * from sys.tablestats where tablename\u003d\u0027APP.{cacheName}\u0027",
+      "text": "%jdbc\nselect * from sys.tablestats where tablename\u003d\u0027APP.{cacheName}\u0027",
       "user": "anonymous",
       "dateUpdated": "2019-11-15 20:57:12.651",
       "config": {
