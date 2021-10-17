@@ -44,7 +44,7 @@ gradle.taskGraph.whenReady( { graph ->
 
 buildDir = 'build-artifacts'
 ext {
-    vendorName = 'SnappyData, Inc.'
+    vendorName = 'TIBCO Software Inc.'
     scalaBinaryVersion = '2.11'
     scalaVersion = scalaBinaryVersion + '.8'
     buildDir = 'build-artifacts'
@@ -115,7 +115,7 @@ task product(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
   exclude 'log4j.properties'
 
   if (rootProject.hasProperty('enablePublish')) {
-    createdBy = 'SnappyData Build Team'
+    createdBy = vendorName
   }
   manifest {
     attributes(
